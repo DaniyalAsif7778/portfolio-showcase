@@ -8,9 +8,9 @@ import Footer from '@/components/Footer';
 import SectionHeader from '@/components/SectionHeader';
 
 // EmailJS configuration placeholders - Replace with your actual IDs
-const EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID';
-const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
-const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
+const EMAILJS_SERVICE_ID = 'service_ax27lze';
+const EMAILJS_TEMPLATE_ID = 'template_j070jzr';
+const EMAILJS_PUBLIC_KEY = 'd7-qXzSLUnT7xVTbY';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
