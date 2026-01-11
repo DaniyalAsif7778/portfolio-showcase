@@ -11,6 +11,7 @@ const projects = [
     description: 'Developed the frontend for an employee management system focused on managing employee records, including adding, viewing, and organizing data. Emphasized a clean user interface, robust component structure, and basic state management.',
     techStack: ['React', 'JavaScript', 'CSS', 'State Management'],
     githubUrl: 'https://github.com/DaniyalAsif7778',
+    liveLink :"https://empoly-manegment-system.vercel.app/",
   },
   {
     title: 'E-Commerce Frontend',
