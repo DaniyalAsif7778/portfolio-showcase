@@ -1,7 +1,7 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useRef } from 'react';
 import { motion } from 'framer-motion';
 import emailjs from '@emailjs/browser';
-import { Send, Mail, User, MessageSquare, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Send, Mail, User, MessageSquare, Loader2, CheckCircle, AlertCircle, FileText, Paperclip, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -16,29 +16,69 @@ const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    subject: '',
     message: '',
   });
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Limit file size to 5MB
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size should be less than 5MB');
+        return;
+      }
+      setAttachment(file);
+    }
+  };
+
+  const removeAttachment = () => {
+    setAttachment(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setStatus('loading');
 
     try {
+      const templateParams: Record<string, string> = {
+        from_name: formData.name,
+        from_email: formData.email,
+        subject: formData.subject || 'No Subject',
+        message: formData.message,
+        to_name: 'Daniyal',
+      };
+
+      // If there's an attachment, convert to base64
+      if (attachment) {
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(attachment);
+        });
+        templateParams.attachment = base64;
+        templateParams.attachment_name = attachment.name;
+      }
+
       await emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
-        {
-          from_name: formData.name,
-          from_email: formData.email,
-          message: formData.message,
-          to_name: 'Daniyal',
-        },
+        templateParams,
         EMAILJS_PUBLIC_KEY
       );
       
       setStatus('success');
-      setFormData({ name: '', email: '', message: '' });
+      setFormData({ name: '', email: '', subject: '', message: '' });
+      setAttachment(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       
       setTimeout(() => setStatus('idle'), 5000);
     } catch (error) {
@@ -110,6 +150,27 @@ const Contact = () => {
                   </div>
                 </div>
 
+                {/* Subject Field */}
+                <div>
+                  <label
+                    htmlFor="subject"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
+                    Subject
+                  </label>
+                  <div className="relative">
+                    <FileText className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+                    <input
+                      type="text"
+                      id="subject"
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      className="w-full pl-12 pr-4 py-3 bg-secondary/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-foreground placeholder:text-muted-foreground"
+                      placeholder="What's this about?"
+                    />
+                  </div>
+                </div>
+
                 {/* Message Field */}
                 <div>
                   <label
@@ -129,6 +190,53 @@ const Contact = () => {
                       className="w-full pl-12 pr-4 py-3 bg-secondary/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-foreground placeholder:text-muted-foreground resize-none"
                       placeholder="Your message..."
                     />
+                  </div>
+                </div>
+
+                {/* Attachment Field */}
+                <div>
+                  <label
+                    htmlFor="attachment"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
+                    Attachment <span className="text-muted-foreground">(optional, max 5MB)</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      id="attachment"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      className="hidden"
+                      accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full flex items-center gap-3 pl-12 pr-4 py-3 bg-secondary/50 border border-border rounded-lg hover:bg-secondary/70 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-left"
+                    >
+                      <Paperclip className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+                      <span className="text-muted-foreground">
+                        {attachment ? '' : 'Choose a file...'}
+                      </span>
+                    </button>
+                    {attachment && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-2 flex items-center gap-2 p-2 bg-primary/10 rounded-lg border border-primary/20"
+                      >
+                        <Paperclip size={16} className="text-primary" />
+                        <span className="text-sm text-foreground flex-1 truncate">{attachment.name}</span>
+                        <button
+                          type="button"
+                          onClick={removeAttachment}
+                          className="p-1 hover:bg-destructive/20 rounded-full transition-colors"
+                        >
+                          <X size={16} className="text-destructive" />
+                        </button>
+                      </motion.div>
+                    )}
                   </div>
                 </div>
 
