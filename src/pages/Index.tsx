@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import SkillCircle from '@/components/SkillCircle';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import profileImage from '@/assets/profile-themed.png';
 
 const skills = [
   { name: 'React', percentage: 90, color: 'hsl(192 95% 68%)' },
@@ -34,10 +35,27 @@ const Index = () => {
         
         <div className="container mx-auto px-6 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
+            {/* Profile Image */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8 }}
+              className="mb-8"
+            >
+              <div className="relative w-40 h-40 md:w-48 md:h-48 mx-auto">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent blur-xl opacity-50 animate-pulse" />
+                <img
+                  src={profileImage}
+                  alt="Daniyal Asif"
+                  className="relative w-full h-full rounded-full object-cover border-4 border-primary/30 shadow-2xl"
+                />
+              </div>
+            </motion.div>
+
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
             >
               <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
                 Frontend Developer

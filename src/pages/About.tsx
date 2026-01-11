@@ -3,6 +3,7 @@ import { GraduationCap, MapPin, Mail, Phone, Target, Heart } from 'lucide-react'
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SectionHeader from '@/components/SectionHeader';
+import profileImage from '@/assets/profile-themed.png';
 
 const About = () => {
   return (
@@ -25,6 +26,17 @@ const About = () => {
               viewport={{ once: true }}
             >
               <div className="glass-card p-8">
+                {/* Profile Image */}
+                <div className="flex justify-center mb-8">
+                  <div className="relative w-48 h-48">
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent blur-xl opacity-40 animate-pulse" />
+                    <img
+                      src={profileImage}
+                      alt="Daniyal Asif"
+                      className="relative w-full h-full rounded-full object-cover border-4 border-primary/30 shadow-2xl"
+                    />
+                  </div>
+                </div>
                 <h3 className="text-2xl font-display font-semibold mb-6 gradient-text">
                   Who I Am
                 </h3>
