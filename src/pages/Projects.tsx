@@ -5,13 +5,7 @@ import SectionHeader from '@/components/SectionHeader';
 import ProjectCard from '@/components/ProjectCard';
 
 const projects = [
-  {
-    title: 'Personal Portfolio Website',
-    description: 'A responsive frontend portfolio website designed with a clean, modern layout to showcase technical skills, projects, and contact information. Features easy navigation and professional presentation, deployed live on Vercel.',
-    techStack: ['HTML', 'CSS', 'JavaScript', 'Vercel'],
-    githubUrl: 'https://github.com/DaniyalAsif7778',
-    liveUrl: 'https://daniyalasif.vercel.app',
-  },
+ 
   {
     title: 'Employee Management System',
     description: 'Developed the frontend for an employee management system focused on managing employee records, including adding, viewing, and organizing data. Emphasized a clean user interface, robust component structure, and basic state management.',
