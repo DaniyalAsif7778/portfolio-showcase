@@ -299,16 +299,7 @@ const Contact = () => {
             </motion.div>
 
             {/* EmailJS Setup Note */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-8 p-4 bg-secondary/30 rounded-lg border border-border text-center"
-            >
-              <p className="text-sm text-muted-foreground">
-                <strong>Note:</strong> To enable the contact form, replace the EmailJS placeholders in the code with your actual EmailJS credentials.
-              </p>
-            </motion.div>
+          
           </div>
         </section>
       </main>
