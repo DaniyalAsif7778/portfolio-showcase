@@ -5,25 +5,27 @@ import SectionHeader from '@/components/SectionHeader';
 import ProjectCard from '@/components/ProjectCard';
 
 const projects = [
- 
   {
     title: 'Employee Management System',
-    description: 'Developed the frontend for an employee management system focused on managing employee records, including adding, viewing, and organizing data. Emphasized a clean user interface, robust component structure, and basic state management.',
+    description: 'Developed the frontend for an employee management system focused on managing employee records, including adding, viewing, and organizing data.',
     techStack: ['React', 'JavaScript', 'CSS', 'State Management'],
     githubUrl: 'https://github.com/DaniyalAsif7778',
-    liveUrl :"https://empoly-manegment-system.vercel.app/",
+    liveUrl: 'https://empoly-manegment-system.vercel.app/',
+    slug: 'employee-management-system',
   },
   {
     title: 'E-Commerce Frontend',
-    description: 'Brought to life a frontend e-commerce application featuring Home, Product Details, Cart, and Checkout pages. Integrated with the Fake Store API to dynamically fetch and display product data.',
+    description: 'Brought to life a frontend e-commerce application featuring Home, Product Details, Cart, and Checkout pages. Integrated with the Fake Store API.',
     techStack: ['React', 'Tailwind CSS', 'Fake Store API', 'React Router'],
     githubUrl: 'https://github.com/DaniyalAsif7778',
+    slug: 'e-commerce-frontend',
   },
   {
     title: 'Weather App',
-    description: 'Created a responsive weather application displaying real-time weather data by integrating a public weather API. Enhanced skills in API integration and handling asynchronous data fetching and user input.',
+    description: 'Created a responsive weather application displaying real-time weather data by integrating a public weather API.',
     techStack: ['React', 'Weather API', 'CSS', 'Async/Await'],
     githubUrl: 'https://github.com/DaniyalAsif7778',
+    slug: 'weather-app',
   },
 ];
 

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { ExternalLink, Github } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface ProjectCardProps {
   title: string;
@@ -7,10 +8,11 @@ interface ProjectCardProps {
   techStack: string[];
   githubUrl: string;
   liveUrl?: string;
+  slug?: string;
   delay?: number;
 }
 
-const ProjectCard = ({ title, description, techStack, githubUrl, liveUrl, delay = 0 }: ProjectCardProps) => {
+const ProjectCard = ({ title, description, techStack, githubUrl, liveUrl, slug, delay = 0 }: ProjectCardProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -21,15 +23,18 @@ const ProjectCard = ({ title, description, techStack, githubUrl, liveUrl, delay 
       className="glass-card p-6 group"
     >
       <div className="flex items-start justify-between mb-4">
-        <h3 className="text-xl font-display font-semibold group-hover:text-primary transition-colors">
-          {title}
-        </h3>
+        <Link to={slug ? `/projects/${slug}` : '#'} className="flex-1">
+          <h3 className="text-xl font-display font-semibold group-hover:text-primary transition-colors">
+            {title}
+          </h3>
+        </Link>
         <div className="flex gap-3">
           <a
             href={githubUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="text-muted-foreground hover:text-primary transition-colors"
+            onClick={(e) => e.stopPropagation()}
           >
             <Github size={20} />
           </a>
@@ -39,14 +44,17 @@ const ProjectCard = ({ title, description, techStack, githubUrl, liveUrl, delay 
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-primary transition-colors"
+              onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink size={20} />
             </a>
           )}
         </div>
       </div>
-      
-      <p className="text-muted-foreground mb-4 line-clamp-3">{description}</p>
+
+      <Link to={slug ? `/projects/${slug}` : '#'}>
+        <p className="text-muted-foreground mb-4 line-clamp-3">{description}</p>
+      </Link>
       
       <div className="flex flex-wrap gap-2">
         {techStack.map((tech) => (
