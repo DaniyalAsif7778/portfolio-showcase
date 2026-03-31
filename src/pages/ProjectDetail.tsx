@@ -65,6 +65,7 @@ const ProjectDetail = () => {
     if (project) {
       fetchLikes();
       fetchComments();
+      fetchRatings();
     }
   }, [project, userId]);
 
