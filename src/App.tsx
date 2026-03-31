@@ -30,6 +30,7 @@ const App = () => (
           <Route path="/github" element={<GitHub />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/admin-panel" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

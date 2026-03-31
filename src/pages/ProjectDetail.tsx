@@ -160,6 +160,63 @@ const ProjectDetail = () => {
     fetchComments();
   };
 
+  const fetchRatings = async () => {
+    if (!project) return;
+    const { data } = await supabase
+      .from('project_ratings')
+      .select('rating')
+      .eq('project_id', project.id);
+    if (data && data.length > 0) {
+      const avg = data.reduce((sum: number, r: any) => sum + r.rating, 0) / data.length;
+      setAverageRating(Math.round(avg * 10) / 10);
+      setRatingCount(data.length);
+    } else {
+      setAverageRating(0);
+      setRatingCount(0);
+    }
+
+    if (userId) {
+      const { data: userR } = await supabase
+        .from('project_ratings')
+        .select('rating')
+        .eq('project_id', project.id)
+        .eq('user_id', userId)
+        .maybeSingle();
+      setUserRating((userR as any)?.rating || 0);
+    }
+  };
+
+  const handleRate = async (rating: number) => {
+    if (!userId) {
+      navigate('/auth');
+      return;
+    }
+    if (!project) return;
+
+    if (userRating === rating) {
+      // Remove rating
+      await supabase
+        .from('project_ratings')
+        .delete()
+        .eq('project_id', project.id)
+        .eq('user_id', userId);
+    } else {
+      // Upsert rating
+      const { error } = await supabase
+        .from('project_ratings')
+        .upsert(
+          { project_id: project.id, user_id: userId, rating },
+          { onConflict: 'project_id,user_id' }
+        );
+      if (error) {
+        // If upsert fails, try delete + insert
+        await supabase.from('project_ratings').delete().eq('project_id', project.id).eq('user_id', userId);
+        await supabase.from('project_ratings').insert({ project_id: project.id, user_id: userId, rating });
+      }
+    }
+    fetchRatings();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
