@@ -9,10 +9,8 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -22,20 +20,10 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast({ title: 'Welcome back!' });
-        navigate(-1);
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { display_name: name } },
-        });
-        if (error) throw error;
-        toast({ title: 'Account created!', description: 'Please check your email to verify your account.' });
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      toast({ title: 'Welcome back!' });
+      navigate(-1);
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
@@ -53,18 +41,10 @@ const Auth = () => {
           className="glass-card p-8 w-full max-w-md mx-6"
         >
           <h2 className="text-2xl font-display font-bold mb-6 text-center">
-            <span className="gradient-text">{isLogin ? 'Sign In' : 'Create Account'}</span>
+            <span className="gradient-text">Sign In</span>
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <Input
-                placeholder="Your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            )}
             <Input
               type="email"
               placeholder="Email"
@@ -80,20 +60,10 @@ const Auth = () => {
               required
               minLength={6}
             />
-            <Button type="submit" variant="hero" className="w-full" disabled={loading}>
-              {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Sign Up'}
+            <Button type="submit" variant="default" className="w-full" disabled={loading}>
+              {loading ? 'Please wait...' : 'Sign In'}
             </Button>
           </form>
-
-          <p className="text-center text-muted-foreground mt-4 text-sm">
-            {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-primary hover:underline font-medium"
-            >
-              {isLogin ? 'Sign Up' : 'Sign In'}
-            </button>
-          </p>
         </motion.div>
       </main>
       <Footer />

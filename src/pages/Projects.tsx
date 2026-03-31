@@ -1,35 +1,37 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SectionHeader from '@/components/SectionHeader';
 import ProjectCard from '@/components/ProjectCard';
+import { supabase } from '@/integrations/supabase/client';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const projects = [
-  {
-    title: 'Employee Management System',
-    description: 'Developed the frontend for an employee management system focused on managing employee records, including adding, viewing, and organizing data.',
-    techStack: ['React', 'JavaScript', 'CSS', 'State Management'],
-    githubUrl: 'https://github.com/DaniyalAsif7778',
-    liveUrl: 'https://empoly-manegment-system.vercel.app/',
-    slug: 'employee-management-system',
-  },
-  {
-    title: 'E-Commerce Frontend',
-    description: 'Brought to life a frontend e-commerce application featuring Home, Product Details, Cart, and Checkout pages. Integrated with the Fake Store API.',
-    techStack: ['React', 'Tailwind CSS', 'Fake Store API', 'React Router'],
-    githubUrl: 'https://github.com/DaniyalAsif7778',
-    slug: 'e-commerce-frontend',
-  },
-  {
-    title: 'Weather App',
-    description: 'Created a responsive weather application displaying real-time weather data by integrating a public weather API.',
-    techStack: ['React', 'Weather API', 'CSS', 'Async/Await'],
-    githubUrl: 'https://github.com/DaniyalAsif7778',
-    slug: 'weather-app',
-  },
-];
+interface Project {
+  title: string;
+  description: string;
+  tech_stack: string[];
+  github_url: string | null;
+  live_url: string | null;
+  slug: string;
+}
 
 const Projects = () => {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const { data } = await supabase
+        .from('projects')
+        .select('title, description, tech_stack, github_url, live_url, slug')
+        .order('created_at', { ascending: false });
+      setProjects((data as Project[]) || []);
+      setLoading(false);
+    };
+    fetchProjects();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -41,17 +43,29 @@ const Projects = () => {
             subtitle="A selection of projects I've worked on"
           />
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {projects.map((project, index) => (
-              <ProjectCard
-                key={project.title}
-                {...project}
-                delay={index * 0.1}
-              />
-            ))}
-          </div>
+          {loading ? (
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-64 w-full rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              {projects.map((project, index) => (
+                <ProjectCard
+                  key={project.slug}
+                  title={project.title}
+                  description={project.description}
+                  techStack={project.tech_stack || []}
+                  githubUrl={project.github_url || undefined}
+                  liveUrl={project.live_url || undefined}
+                  slug={project.slug}
+                  delay={index * 0.1}
+                />
+              ))}
+            </div>
+          )}
 
-          {/* CTA */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
