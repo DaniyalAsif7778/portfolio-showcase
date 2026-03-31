@@ -41,18 +41,10 @@ const Auth = () => {
           className="glass-card p-8 w-full max-w-md mx-6"
         >
           <h2 className="text-2xl font-display font-bold mb-6 text-center">
-            <span className="gradient-text">{isLogin ? 'Sign In' : 'Create Account'}</span>
+            <span className="gradient-text">Sign In</span>
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <Input
-                placeholder="Your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            )}
             <Input
               type="email"
               placeholder="Email"
