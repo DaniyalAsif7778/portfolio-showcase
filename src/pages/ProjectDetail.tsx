@@ -44,6 +44,10 @@ const ProjectDetail = () => {
   const [commentText, setCommentText] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
+  const [userRating, setUserRating] = useState(0);
+  const [ratingCount, setRatingCount] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
