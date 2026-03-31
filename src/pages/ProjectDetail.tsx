@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart, MessageCircle, ArrowLeft, ExternalLink, Github, Send, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, ArrowLeft, ExternalLink, Github, Send, Trash2, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
