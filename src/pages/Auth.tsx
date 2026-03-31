@@ -60,20 +60,10 @@ const Auth = () => {
               required
               minLength={6}
             />
-            <Button type="submit" variant="hero" className="w-full" disabled={loading}>
-              {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Sign Up'}
+            <Button type="submit" variant="default" className="w-full" disabled={loading}>
+              {loading ? 'Please wait...' : 'Sign In'}
             </Button>
           </form>
-
-          <p className="text-center text-muted-foreground mt-4 text-sm">
-            {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-primary hover:underline font-medium"
-            >
-              {isLogin ? 'Sign Up' : 'Sign In'}
-            </button>
-          </p>
         </motion.div>
       </main>
       <Footer />
