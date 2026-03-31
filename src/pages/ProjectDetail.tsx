@@ -352,6 +352,44 @@ const ProjectDetail = () => {
             </p>
           </motion.div>
 
+          {/* Rating */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="glass-card p-6 mb-8"
+          >
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h3 className="text-lg font-display font-semibold mb-1">Rate this Project</h3>
+                <p className="text-sm text-muted-foreground">
+                  {ratingCount > 0 ? `${averageRating} / 5 (${ratingCount} rating${ratingCount !== 1 ? 's' : ''})` : 'No ratings yet'}
+                </p>
+              </div>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => handleRate(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    className="transition-colors"
+                  >
+                    <Star
+                      size={28}
+                      className={
+                        (hoverRating || userRating) >= star
+                          ? 'text-yellow-400'
+                          : 'text-muted-foreground/40'
+                      }
+                      fill={(hoverRating || userRating) >= star ? 'currentColor' : 'none'}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
           {/* Like & Comment Actions */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
