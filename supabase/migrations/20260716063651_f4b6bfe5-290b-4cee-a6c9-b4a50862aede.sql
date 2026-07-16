@@ -1,0 +1,2 @@
+CREATE POLICY "Allow project updates" ON public.projects FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow project deletes" ON public.projects FOR DELETE TO anon, authenticated USING (true);
