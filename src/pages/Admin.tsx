@@ -229,43 +229,67 @@ const Admin = () => {
   if (view === 'list') {
     return (
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-6 py-12 max-w-4xl">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
-              <h1 className="text-3xl font-display font-bold">
-                <span className="gradient-text">Manage Projects</span>
+        <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+          <div className="container mx-auto px-6 py-4 max-w-5xl flex items-center justify-between gap-3">
+            <div>
+              <h1 className="text-xl md:text-2xl font-display font-bold">
+                <span className="gradient-text">Admin Panel</span>
               </h1>
+              <p className="text-xs text-muted-foreground">
+                {loadingList ? 'Loading…' : `${projects.length} project${projects.length === 1 ? '' : 's'}`}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
               <Button onClick={openNew}>
                 <Plus size={18} className="mr-2" /> New Project
               </Button>
+              <Button variant="ghost" onClick={() => setAuthenticated(false)}>
+                Logout
+              </Button>
             </div>
+          </div>
+        </header>
 
+        <div className="container mx-auto px-6 py-10 max-w-5xl">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
             {loadingList ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="animate-spin" />
+              <div className="flex justify-center py-20">
+                <Loader2 className="animate-spin text-primary" />
               </div>
             ) : projects.length === 0 ? (
-              <div className="glass-card p-8 text-center text-muted-foreground">
-                No projects yet. Click "New Project" to add one.
+              <div className="glass-card p-12 text-center">
+                <p className="text-muted-foreground mb-4">No projects yet.</p>
+                <Button onClick={openNew}>
+                  <Plus size={18} className="mr-2" /> Add your first project
+                </Button>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="grid gap-4 sm:grid-cols-2">
                 {projects.map((p) => (
-                  <div key={p.id} className="glass-card p-4 flex items-center gap-4">
+                  <div
+                    key={p.id}
+                    className="glass-card p-4 flex gap-4 items-center transition-all hover:border-primary/40 hover:shadow-[var(--shadow-primary)]"
+                  >
                     {p.images && p.images[0] ? (
-                      <img src={p.images[0]} alt={p.title} className="w-16 h-16 rounded-md object-cover flex-shrink-0" />
+                      <img
+                        src={p.images[0]}
+                        alt={p.title}
+                        loading="lazy"
+                        className="w-20 h-20 rounded-lg object-cover flex-shrink-0 border border-border/60"
+                      />
                     ) : (
-                      <div className="w-16 h-16 rounded-md bg-secondary flex-shrink-0" />
+                      <div className="w-20 h-20 rounded-lg bg-secondary flex-shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold truncate">{p.title}</h3>
-                      <p className="text-sm text-muted-foreground truncate">{p.description}</p>
+                      <p className="text-xs text-muted-foreground truncate mb-2">/{p.slug}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button size="icon" variant="outline" onClick={() => openEdit(p)}>
+                    <div className="flex flex-col gap-2">
+                      <Button size="icon" variant="outline" onClick={() => openEdit(p)} aria-label="Edit project">
                         <Pencil size={16} />
                       </Button>
-                      <Button size="icon" variant="destructive" onClick={() => handleDelete(p)}>
+                      <Button size="icon" variant="destructive" onClick={() => handleDelete(p)} aria-label="Delete project">
                         <Trash2 size={16} />
                       </Button>
                     </div>
@@ -278,6 +302,7 @@ const Admin = () => {
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-background">
