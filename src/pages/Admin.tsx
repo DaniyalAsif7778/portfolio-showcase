@@ -322,7 +322,7 @@ const Admin = () => {
             <span className="gradient-text">{editingId ? 'Edit Project' : 'Add New Project'}</span>
           </h1>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6 glass-card p-6 md:p-8">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Project Name *</label>
               <Input
