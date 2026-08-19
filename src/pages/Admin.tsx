@@ -32,8 +32,9 @@ const emptyForm = {
 
 const Admin = () => {
   const [authenticated, setAuthenticated] = useState(false);
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [loggingIn, setLoggingIn] = useState(false);
 
   const [view, setView] = useState<'list' | 'form'>('list');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -62,12 +63,39 @@ const Admin = () => {
     if (authenticated) fetchProjects();
   }, [authenticated]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const callAdmin = async (body: Record<string, unknown>, pwd?: string) => {
+    const { data, error } = await supabase.functions.invoke('admin-projects', {
+      body,
+      headers: { 'x-admin-password': pwd ?? adminPassword },
+    });
+    if (error) throw new Error('Request failed. Please check your admin password and try again.');
+    if ((data as any)?.error) throw new Error((data as any).error);
+    return data;
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const { data, error } = await supabase.functions.invoke('admin-projects', {
+      body: formData,
+      headers: { 'x-admin-password': adminPassword },
+    });
+    if (error || (data as any)?.error) throw new Error('Image upload failed.');
+    return (data as any).url as string;
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === 'Admin' && password === 'Admin') {
+    setLoggingIn(true);
+    try {
+      await callAdmin({ action: 'verify' }, password);
+      setAdminPassword(password);
       setAuthenticated(true);
-    } else {
+      setPassword('');
+    } catch {
       toast({ title: 'Access Denied', description: 'Invalid credentials', variant: 'destructive' });
+    } finally {
+      setLoggingIn(false);
     }
   };
 
@@ -103,11 +131,12 @@ const Admin = () => {
 
   const handleDelete = async (p: Project) => {
     if (!confirm(`Delete project "${p.title}"?`)) return;
-    const { error } = await supabase.from('projects').delete().eq('id', p.id);
-    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    else {
+    try {
+      await callAdmin({ action: 'delete', id: p.id });
       toast({ title: 'Project deleted' });
       fetchProjects();
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
     }
   };
 
@@ -127,15 +156,6 @@ const Admin = () => {
 
   const generateSlug = (name: string) =>
     name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-
-  const uploadImage = async (file: File): Promise<string> => {
-    const ext = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
-    const { error } = await supabase.storage.from('project-images').upload(fileName, file);
-    if (error) throw error;
-    const { data } = supabase.storage.from('project-images').getPublicUrl(fileName);
-    return data.publicUrl;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,12 +193,10 @@ const Admin = () => {
       };
 
       if (editingId) {
-        const { error } = await supabase.from('projects').update(payload as any).eq('id', editingId);
-        if (error) throw error;
+        await callAdmin({ action: 'update', id: editingId, project: payload });
         toast({ title: 'Project updated successfully!' });
       } else {
-        const { error } = await supabase.from('projects').insert(payload as any);
-        if (error) throw error;
+        await callAdmin({ action: 'create', project: payload });
         toast({ title: 'Project added successfully!' });
       }
 
@@ -205,20 +223,14 @@ const Admin = () => {
           </h2>
           <form onSubmit={handleLogin} className="space-y-4">
             <Input
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <Input
               type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <Button type="submit" variant="default" className="w-full">
-              Login
+            <Button type="submit" variant="default" className="w-full" disabled={loggingIn}>
+              {loggingIn ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Login'}
             </Button>
           </form>
         </motion.div>
@@ -243,7 +255,7 @@ const Admin = () => {
               <Button onClick={openNew}>
                 <Plus size={18} className="mr-2" /> New Project
               </Button>
-              <Button variant="ghost" onClick={() => setAuthenticated(false)}>
+              <Button variant="ghost" onClick={() => { setAdminPassword(''); setAuthenticated(false); }}>
                 Logout
               </Button>
             </div>
