@@ -93,7 +93,9 @@ const ProjectDetail = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="lg:col-span-5 flex flex-col gap-8"
+              className={`flex flex-col gap-8 ${
+                project.images && project.images.length > 0 ? 'lg:col-span-5' : 'lg:col-span-8'
+              }`}
             >
               <div className="space-y-4">
                 <h1 className="text-5xl md:text-6xl font-display font-bold tracking-tighter leading-none">
