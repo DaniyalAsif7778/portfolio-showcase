@@ -27,6 +27,7 @@ const Skills = () => {
       <main className="pt-24 pb-16">
         <section className="container mx-auto px-6 py-16">
           <SectionHeader
+            as="h1"
             title="Skills"
             subtitle="Technologies and tools I use to bring ideas to life"
           />
