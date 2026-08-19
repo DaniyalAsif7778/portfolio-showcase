@@ -72,108 +72,153 @@ const ProjectDetail = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="pt-24 pb-16">
-        <div className="container mx-auto px-6 max-w-5xl">
-          <motion.div
+      <main className="pt-24 pb-20">
+        <div className="container mx-auto px-6 max-w-6xl flex flex-col gap-12">
+          <motion.nav
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="mb-8"
           >
             <Link
               to="/projects"
-              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="group inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-accent transition-colors"
             >
-              <ArrowLeft size={18} />
-              Back to Projects
+              <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
+              Back to projects
             </Link>
-          </motion.div>
+          </motion.nav>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="mb-8"
-          >
-            <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
-              <span className="gradient-text">{project.title}</span>
-            </h1>
-            <div className="flex flex-wrap gap-2 mb-6">
-              {project.tech_stack.map((tech) => (
-                <span
-                  key={tech}
-                  className="px-3 py-1 text-sm font-medium rounded-full bg-secondary text-primary"
-                >
-                  {tech}
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-4">
-              {project.github_url && (
-                <a
-                  href={project.github_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <Github size={20} /> GitHub
-                </a>
-              )}
-              {project.live_url && (
-                <a
-                  href={project.live_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                >
-                  <ExternalLink size={20} /> Live Demo
-                </a>
-              )}
-            </div>
-          </motion.div>
-
-          {project.images && project.images.length > 0 && (
+          {/* Hero: info rail + visuals */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mb-12"
+              transition={{ delay: 0.1 }}
+              className="lg:col-span-5 flex flex-col gap-8"
             >
-              <div className="glass-card overflow-hidden rounded-xl mb-4">
-                <img
-                  src={project.images[selectedImage] || '/placeholder.svg'}
-                  alt={`${project.title} screenshot ${selectedImage + 1}`}
-                  className="w-full h-64 md:h-96 object-cover"
-                />
+              <div className="space-y-4">
+                <h1 className="text-5xl md:text-6xl font-display font-bold tracking-tighter leading-none">
+                  <span className="gradient-text">{project.title}</span>
+                </h1>
+                {project.tech_stack?.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {project.tech_stack.map((tech) => (
+                      <span
+                        key={tech}
+                        className="px-3 py-1 text-[10px] uppercase tracking-widest font-bold border border-border bg-card/50 text-primary rounded-sm"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-              {project.images.length > 1 && (
-                <div className="flex gap-3 overflow-x-auto pb-2">
-                  {project.images.map((img, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setSelectedImage(i)}
-                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
-                        selectedImage === i ? 'border-primary' : 'border-border hover:border-muted-foreground'
-                      }`}
+
+              <p className="text-lg text-muted-foreground leading-relaxed max-w-md">
+                {project.description}
+              </p>
+
+              {(project.live_url || project.github_url) && (
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {project.live_url && (
+                    <a
+                      href={project.live_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-8 py-4 bg-primary text-primary-foreground rounded-full font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                     >
-                      <img src={img} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
-                    </button>
-                  ))}
+                      View Live <ExternalLink size={18} />
+                    </a>
+                  )}
+                  {project.github_url && (
+                    <a
+                      href={project.github_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-8 py-4 border border-border text-foreground rounded-full font-bold hover:border-primary/60 transition-colors flex items-center justify-center gap-2"
+                    >
+                      GitHub <Github size={18} />
+                    </a>
+                  )}
                 </div>
               )}
             </motion.div>
-          )}
 
-          <motion.div
+            {project.images && project.images.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="lg:col-span-7 space-y-6"
+              >
+                <div className="relative">
+                  <div
+                    className="absolute -inset-0.5 opacity-20 blur-2xl"
+                    style={{ background: 'var(--gradient-primary)' }}
+                  />
+                  <div className="relative glass-card overflow-hidden rounded-2xl">
+                    <img
+                      src={project.images[selectedImage] || '/placeholder.svg'}
+                      alt={`${project.title} screenshot ${selectedImage + 1}`}
+                      className="w-full aspect-[16/10] object-cover"
+                    />
+                  </div>
+                </div>
+
+                {project.images.length > 1 && (
+                  <div className="grid grid-cols-3 gap-4">
+                    {project.images.map((img, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setSelectedImage(i)}
+                        aria-label={`Show image ${i + 1}`}
+                        className={`bg-card border border-border rounded-xl overflow-hidden aspect-video transition-all ${
+                          selectedImage === i
+                            ? 'outline outline-2 outline-primary/50 outline-offset-4'
+                            : 'opacity-60 hover:opacity-100'
+                        }`}
+                      >
+                        <img src={img} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </div>
+
+          {/* Details */}
+          <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="glass-card p-8 mb-8"
+            className="grid grid-cols-1 md:grid-cols-12 gap-12 pt-12 border-t border-border"
           >
-            <h2 className="text-2xl font-display font-semibold mb-4">About this Project</h2>
-            <p className="text-muted-foreground leading-relaxed text-lg whitespace-pre-wrap">
-              {project.detailed_description || project.description}
-            </p>
-          </motion.div>
+            <div className="md:col-span-4">
+              <h2 className="text-2xl font-display font-bold tracking-tight mb-6">About this Project</h2>
+              <div className="space-y-6">
+                {project.tech_stack?.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">Stack</p>
+                    <p className="text-foreground font-medium">{project.tech_stack.join(' · ')}</p>
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">Published</p>
+                  <p className="text-foreground font-medium">
+                    {new Date(project.created_at).toLocaleDateString(undefined, {
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="md:col-span-8">
+              <p className="text-muted-foreground leading-relaxed text-lg whitespace-pre-wrap">
+                {project.detailed_description || project.description}
+              </p>
+            </div>
+          </motion.section>
         </div>
       </main>
 
@@ -181,5 +226,6 @@ const ProjectDetail = () => {
     </div>
   );
 };
+
 
 export default ProjectDetail;
