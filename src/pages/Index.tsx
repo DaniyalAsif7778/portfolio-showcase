@@ -70,6 +70,9 @@ const Index = () => {
             >
               Hi, I'm{' '}
               <span className="gradient-text">Daniyal Asif</span>
+              <span className="block text-2xl md:text-3xl font-medium text-muted-foreground mt-4">
+                Frontend Developer — React &amp; Modern Web Apps
+              </span>
             </motion.h1>
 
             <motion.p
@@ -110,6 +113,7 @@ const Index = () => {
                 href="https://github.com/DaniyalAsif7778"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Daniyal Asif on GitHub"
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Github size={24} />
@@ -118,6 +122,7 @@ const Index = () => {
                 href="https://linkedin.com/in/DaniyalAsif7778"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Daniyal Asif on LinkedIn"
                 className="text-muted-foreground hover:text-primary transition-colors"
               >
                 <Linkedin size={24} />

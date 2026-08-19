@@ -32,6 +32,7 @@ const GitHub = () => {
       <main className="pt-24 pb-16">
         <section className="container mx-auto px-6 py-16">
           <SectionHeader
+            as="h1"
             title="GitHub"
             subtitle="My GitHub profile and recent repositories"
           />

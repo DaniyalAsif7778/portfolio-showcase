@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 interface SectionHeaderProps {
   title: string;
   subtitle?: string;
+  as?: 'h1' | 'h2';
 }
 
-const SectionHeader = ({ title, subtitle }: SectionHeaderProps) => {
+const SectionHeader = ({ title, subtitle, as = 'h2' }: SectionHeaderProps) => {
+  const Heading = as;
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -14,9 +16,9 @@ const SectionHeader = ({ title, subtitle }: SectionHeaderProps) => {
       viewport={{ once: true }}
       className="text-center mb-16"
     >
-      <h2 className="text-4xl md:text-5xl font-display font-bold mb-4">
+      <Heading className="text-4xl md:text-5xl font-display font-bold mb-4">
         <span className="gradient-text">{title}</span>
-      </h2>
+      </Heading>
       {subtitle && (
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
           {subtitle}
