@@ -59,6 +59,8 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const action = str(body?.action, 20);
 
+    if (action === "verify") return json({ success: true });
+
     if (action === "delete") {
       const id = str(body?.id, 100);
       if (!id) return json({ error: "Missing id" }, 400);

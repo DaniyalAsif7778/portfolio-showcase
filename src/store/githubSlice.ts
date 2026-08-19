@@ -47,7 +47,8 @@ export const fetchGitHubData = createAsyncThunk(
       ]);
 
       if (!profileRes.ok || !reposRes.ok) {
-        throw new Error('Failed to fetch GitHub data');
+        console.error('GitHub API responded with a non-OK status');
+        throw new Error('unavailable');
       }
 
       const profile = await profileRes.json();
@@ -55,7 +56,8 @@ export const fetchGitHubData = createAsyncThunk(
 
       return { profile, repos };
     } catch (error) {
-      return rejectWithValue('Failed to fetch GitHub data');
+      console.error('GitHub data fetch failed:', error);
+      return rejectWithValue('Unable to load GitHub data right now. Please try again later.');
     }
   }
 );
