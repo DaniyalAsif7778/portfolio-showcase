@@ -120,6 +120,7 @@ export type Database = {
           images: string[] | null
           live_url: string | null
           slug: string
+          sort_order: number
           tech_stack: string[] | null
           title: string
           updated_at: string
@@ -133,6 +134,7 @@ export type Database = {
           images?: string[] | null
           live_url?: string | null
           slug: string
+          sort_order?: number
           tech_stack?: string[] | null
           title: string
           updated_at?: string
@@ -146,8 +148,45 @@ export type Database = {
           images?: string[] | null
           live_url?: string | null
           slug?: string
+          sort_order?: number
           tech_stack?: string[] | null
           title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      skills: {
+        Row: {
+          category: string
+          color: string
+          created_at: string
+          featured: boolean
+          id: string
+          name: string
+          percentage: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          color?: string
+          created_at?: string
+          featured?: boolean
+          id?: string
+          name: string
+          percentage?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          color?: string
+          created_at?: string
+          featured?: boolean
+          id?: string
+          name?: string
+          percentage?: number
+          sort_order?: number
           updated_at?: string
         }
         Relationships: []

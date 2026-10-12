@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, Plus, X, Loader2, Pencil, Trash2, ArrowLeft } from 'lucide-react';
+import { Upload, Plus, X, Loader2, Pencil, Trash2, ArrowLeft, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { adminCall, adminLogin, adminUpload, clearAdminToken, getAdminToken } from '@/lib/adminApi';
+import AdminSkills from '@/components/admin/AdminSkills';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +19,7 @@ type Project = {
   github_url: string | null;
   tech_stack: string[] | null;
   images: string[] | null;
+  sort_order: number;
 };
 
 const emptyForm = {
@@ -28,13 +31,15 @@ const emptyForm = {
   githubUrl: '',
   techStack: [] as string[],
   existingImages: [] as string[],
+  sortOrder: 0,
 };
 
 const Admin = () => {
-  const [authenticated, setAuthenticated] = useState(false);
+  const [authenticated, setAuthenticated] = useState(() => !!getAdminToken());
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [adminPassword, setAdminPassword] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
+  const [tab, setTab] = useState<'projects' | 'skills'>('projects');
 
   const [view, setView] = useState<'list' | 'form'>('list');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -53,8 +58,9 @@ const Admin = () => {
     const { data, error } = await supabase
       .from('projects')
       .select('*')
+      .order('sort_order', { ascending: true })
       .order('created_at', { ascending: false });
-    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    if (error) toast({ title: 'Error', description: 'Could not load projects.', variant: 'destructive' });
     else setProjects((data || []) as Project[]);
     setLoadingList(false);
   };
@@ -63,38 +69,32 @@ const Admin = () => {
     if (authenticated) fetchProjects();
   }, [authenticated]);
 
-  const callAdmin = async (body: Record<string, unknown>, pwd?: string) => {
-    const { data, error } = await supabase.functions.invoke('admin-projects', {
-      body,
-      headers: { 'x-admin-password': pwd ?? adminPassword },
-    });
-    if (error) throw new Error('Request failed. Please check your admin password and try again.');
-    if ((data as any)?.error) throw new Error((data as any).error);
-    return data;
+  const callAdmin = async (body: Record<string, unknown>) => {
+    try {
+      return await adminCall(body);
+    } catch (err) {
+      if (!getAdminToken()) setAuthenticated(false);
+      throw err;
+    }
   };
 
-  const uploadImage = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const { data, error } = await supabase.functions.invoke('admin-projects', {
-      body: formData,
-      headers: { 'x-admin-password': adminPassword },
-    });
-    if (error || (data as any)?.error) throw new Error('Image upload failed.');
-    return (data as any).url as string;
+  const uploadImage = adminUpload;
+
+  const logout = () => {
+    clearAdminToken();
+    setAuthenticated(false);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoggingIn(true);
     try {
-      await callAdmin({ action: 'verify' }, password);
-      setAdminPassword(password);
+      await adminLogin(username.trim(), password);
       setAuthenticated(true);
-      setPassword('');
-    } catch {
-      toast({ title: 'Access Denied', description: 'Invalid credentials', variant: 'destructive' });
+    } catch (err: any) {
+      toast({ title: 'Access Denied', description: err.message || 'Invalid credentials', variant: 'destructive' });
     } finally {
+      setPassword('');
       setLoggingIn(false);
     }
   };
@@ -122,6 +122,7 @@ const Admin = () => {
       githubUrl: p.github_url || '',
       techStack: p.tech_stack || [],
       existingImages: p.images || [],
+      sortOrder: p.sort_order ?? 0,
     });
     setEditingId(p.id);
     setMainImage(null);
@@ -132,7 +133,7 @@ const Admin = () => {
   const handleDelete = async (p: Project) => {
     if (!confirm(`Delete project "${p.title}"?`)) return;
     try {
-      await callAdmin({ action: 'delete', id: p.id });
+      await callAdmin({ action: 'project_delete', id: p.id });
       toast({ title: 'Project deleted' });
       fetchProjects();
     } catch (err: any) {
@@ -153,6 +154,20 @@ const Admin = () => {
 
   const removeExistingImage = (url: string) =>
     setForm({ ...form, existingImages: form.existingImages.filter((u) => u !== url) });
+
+  const moveImage = (index: number, dir: -1 | 1) => {
+    const imgs = [...form.existingImages];
+    const t = index + dir;
+    if (t < 0 || t >= imgs.length) return;
+    [imgs[index], imgs[t]] = [imgs[t], imgs[index]];
+    setForm({ ...form, existingImages: imgs });
+  };
+
+  const makeMain = (index: number) => {
+    const imgs = [...form.existingImages];
+    const [img] = imgs.splice(index, 1);
+    setForm({ ...form, existingImages: [img, ...imgs] });
+  };
 
   const generateSlug = (name: string) =>
     name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -190,13 +205,14 @@ const Admin = () => {
         github_url: form.githubUrl || null,
         tech_stack: form.techStack,
         images: imageUrls,
+        sort_order: Number(form.sortOrder) || 0,
       };
 
       if (editingId) {
-        await callAdmin({ action: 'update', id: editingId, project: payload });
+        await callAdmin({ action: 'project_update', id: editingId, project: payload });
         toast({ title: 'Project updated successfully!' });
       } else {
-        await callAdmin({ action: 'create', project: payload });
+        await callAdmin({ action: 'project_create', project: payload });
         toast({ title: 'Project added successfully!' });
       }
 
@@ -221,8 +237,16 @@ const Admin = () => {
           <h2 className="text-2xl font-display font-bold mb-6 text-center">
             <span className="gradient-text">Admin Access</span>
           </h2>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
             <Input
+              placeholder="Username"
+              autoComplete="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+            <Input
+              autoComplete="current-password"
               type="password"
               placeholder="Password"
               value={password}
@@ -252,15 +276,37 @@ const Admin = () => {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button onClick={openNew}>
-                <Plus size={18} className="mr-2" /> New Project
-              </Button>
-              <Button variant="ghost" onClick={() => { setAdminPassword(''); setAuthenticated(false); }}>
+              {tab === 'projects' && (
+                <Button onClick={openNew}>
+                  <Plus size={18} className="mr-2" /> New Project
+                </Button>
+              )}
+              <Button variant="ghost" onClick={logout}>
                 Logout
               </Button>
             </div>
           </div>
+          <div className="container mx-auto px-6 max-w-5xl flex gap-1">
+            {(['projects', 'skills'] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTab(t)}
+                className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${
+                  tab === t ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
         </header>
+
+        {tab === 'skills' ? (
+          <div className="container mx-auto px-6 py-10 max-w-5xl">
+            <AdminSkills />
+          </div>
+        ) : (
 
         <div className="container mx-auto px-6 py-10 max-w-5xl">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
@@ -294,7 +340,7 @@ const Admin = () => {
                     )}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold truncate">{p.title}</h3>
-                      <p className="text-xs text-muted-foreground truncate mb-2">/{p.slug}</p>
+                      <p className="text-xs text-muted-foreground truncate mb-2">/{p.slug} · order {p.sort_order ?? 0}</p>
                       <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -311,6 +357,7 @@ const Admin = () => {
             )}
           </motion.div>
         </div>
+        )}
       </div>
     );
   }
@@ -362,6 +409,15 @@ const Admin = () => {
             </div>
 
             <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Display Order (lower shows first)</label>
+              <Input
+                type="number"
+                value={form.sortOrder}
+                onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
+              />
+            </div>
+
+            <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Short Description *</label>
               <Textarea
                 placeholder="Brief project overview..."
@@ -385,16 +441,35 @@ const Admin = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Current Images</label>
                 <div className="flex flex-wrap gap-3">
-                  {form.existingImages.map((url) => (
+                  {form.existingImages.map((url, i) => (
                     <div key={url} className="relative">
-                      <img src={url} alt="" className="w-24 h-24 rounded-md object-cover" />
+                      <img
+                        src={url}
+                        alt={`Project image ${i + 1}`}
+                        className={`w-24 h-24 rounded-md object-cover border-2 ${i === 0 ? 'border-primary' : 'border-transparent'}`}
+                      />
+                      {i === 0 && (
+                        <span className="absolute bottom-1 left-1 text-[10px] px-1.5 py-0.5 rounded bg-primary text-primary-foreground">Main</span>
+                      )}
                       <button
                         type="button"
+                        aria-label="Remove image"
                         onClick={() => removeExistingImage(url)}
                         className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
                       >
                         <X size={12} />
                       </button>
+                      <div className="flex justify-between mt-1">
+                        <button type="button" aria-label="Move left" onClick={() => moveImage(i, -1)} className="text-muted-foreground hover:text-primary disabled:opacity-30" disabled={i === 0}>
+                          <ChevronLeft size={16} />
+                        </button>
+                        <button type="button" aria-label="Set as main image" onClick={() => makeMain(i)} className="text-muted-foreground hover:text-primary disabled:opacity-30" disabled={i === 0}>
+                          <Star size={14} />
+                        </button>
+                        <button type="button" aria-label="Move right" onClick={() => moveImage(i, 1)} className="text-muted-foreground hover:text-primary disabled:opacity-30" disabled={i === form.existingImages.length - 1}>
+                          <ChevronRight size={16} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
