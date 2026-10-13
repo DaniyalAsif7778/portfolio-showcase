@@ -1,19 +1,17 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { ArrowDown, Download, Github, Linkedin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SkillCircle from '@/components/SkillCircle';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import profileImage from '@/assets/profile-themed.png';
-
-const skills = [
-  { name: 'React', percentage: 90, color: 'hsl(192 95% 68%)' },
-  { name: 'TypeScript', percentage: 80, color: 'hsl(211 60% 48%)' },
-  { name: 'Tailwind CSS', percentage: 92, color: 'hsl(198 93% 60%)' },
-  { name: 'JavaScript', percentage: 88, color: 'hsl(50 98% 64%)' },
-];
+import { useSkills } from '@/hooks/useSkills';
 
 const Index = () => {
+  const { skills: all } = useSkills();
+  const featured = all.filter((s) => s.featured);
+  const skills = (featured.length ? featured : all).slice(0, 4);
   const handleDownloadCV = () => {
     const link = document.createElement('a');
     link.href = '/Daniyal_Asif_CV.pdf';
@@ -169,7 +167,7 @@ const Index = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
             {skills.map((skill, index) => (
               <SkillCircle
-                key={skill.name}
+                key={skill.id}
                 name={skill.name}
                 percentage={skill.percentage}
                 color={skill.color}
@@ -186,7 +184,7 @@ const Index = () => {
             className="text-center mt-12"
           >
             <Button variant="outline" asChild>
-              <a href="/skills">View All Skills</a>
+              <Link to="/skills">View All Skills</Link>
             </Button>
           </motion.div>
         </div>
