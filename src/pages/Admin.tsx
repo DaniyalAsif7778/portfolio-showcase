@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Upload, Plus, X, Loader2, Pencil, Trash2, ArrowLeft, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { adminCall, adminLogin, adminUpload, clearAdminToken, getAdminToken } from '@/lib/adminApi';
 import AdminSkills from '@/components/admin/AdminSkills';
+import AdminHome from '@/components/admin/AdminHome';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,7 +40,7 @@ const Admin = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
-  const [tab, setTab] = useState<'projects' | 'skills'>('projects');
+  const [tab, setTab] = useState<'projects' | 'skills' | 'homepage'>('projects');
 
   const [view, setView] = useState<'list' | 'form'>('list');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -287,7 +288,7 @@ const Admin = () => {
             </div>
           </div>
           <div className="container mx-auto px-6 max-w-5xl flex gap-1">
-            {(['projects', 'skills'] as const).map((t) => (
+            {(['projects', 'skills', 'homepage'] as const).map((t) => (
               <button
                 key={t}
                 type="button"
@@ -302,7 +303,11 @@ const Admin = () => {
           </div>
         </header>
 
-        {tab === 'skills' ? (
+        {tab === 'homepage' ? (
+          <div className="container mx-auto px-6 py-10 max-w-5xl">
+            <AdminHome />
+          </div>
+        ) : tab === 'skills' ? (
           <div className="container mx-auto px-6 py-10 max-w-5xl">
             <AdminSkills />
           </div>

@@ -7,9 +7,11 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import profileImage from '@/assets/profile-themed.png';
 import { useSkills } from '@/hooks/useSkills';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const Index = () => {
   const { skills: all } = useSkills();
+  const { settings } = useSiteSettings();
   const featured = all.filter((s) => s.featured);
   const skills = (featured.length ? featured : all).slice(0, 4);
   const handleDownloadCV = () => {
@@ -43,8 +45,8 @@ const Index = () => {
               <div className="relative w-40 h-40 md:w-48 md:h-48 mx-auto">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent blur-xl opacity-50 animate-pulse" />
                 <img
-                  src={profileImage}
-                  alt="Daniyal Asif"
+                  src={settings.profile_image || profileImage}
+                  alt={settings.name}
                   className="relative w-full h-full rounded-full object-cover border-4 border-primary/30 shadow-2xl"
                 />
               </div>
@@ -56,7 +58,7 @@ const Index = () => {
               transition={{ duration: 0.8, delay: 0.1 }}
             >
               <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-                Frontend Developer
+                {settings.badge}
               </span>
             </motion.div>
 
@@ -67,9 +69,9 @@ const Index = () => {
               className="text-5xl md:text-7xl font-display font-bold mb-6"
             >
               Hi, I'm{' '}
-              <span className="gradient-text">Daniyal Asif</span>
+              <span className="gradient-text">{settings.name}</span>
               <span className="block text-2xl md:text-3xl font-medium text-muted-foreground mt-4">
-                Frontend Developer — React &amp; Modern Web Apps
+                {settings.tagline}
               </span>
             </motion.h1>
 
@@ -79,8 +81,7 @@ const Index = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
             >
-              Results-oriented Frontend Developer specializing in building responsive, 
-              accessible, and user-centric web applications with React and modern frontend technologies.
+              {settings.intro}
             </motion.p>
 
             <motion.div
@@ -94,7 +95,7 @@ const Index = () => {
                 Download CV
               </Button>
               <Button variant="heroOutline" asChild>
-                <a href="https://github.com/DaniyalAsif7778" target="_blank" rel="noopener noreferrer">
+                <a href={settings.github_url} target="_blank" rel="noopener noreferrer">
                   <Github size={20} />
                   GitHub Profile
                 </a>
@@ -108,7 +109,7 @@ const Index = () => {
               className="flex items-center justify-center gap-6"
             >
               <a
-                href="https://github.com/DaniyalAsif7778"
+                href={settings.github_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Daniyal Asif on GitHub"
@@ -117,7 +118,7 @@ const Index = () => {
                 <Github size={24} />
               </a>
               <a
-                href="https://linkedin.com/in/DaniyalAsif7778"
+                href={settings.linkedin_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Daniyal Asif on LinkedIn"

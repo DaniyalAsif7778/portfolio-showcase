@@ -220,6 +220,31 @@ Deno.serve(async (req) => {
         return json({ success: true });
       }
 
+      // ----- homepage settings -----
+      case "settings_update": {
+        const s = body?.settings ?? {};
+        const name = str(s.name, 100);
+        if (!name) return fail("Name is required", 400);
+        const github_url = str(s.github_url, 500);
+        const linkedin_url = str(s.linkedin_url, 500);
+        const profile_image = str(s.profile_image, 1000);
+        if (!isSafeUrl(github_url) || !isSafeUrl(linkedin_url) || !isSafeUrl(profile_image)) {
+          return fail("Links must start with http:// or https://", 400);
+        }
+        const { error } = await supabase.from("site_settings").update({
+          name,
+          badge: str(s.badge, 100),
+          tagline: str(s.tagline, 200),
+          intro: str(s.intro, 2000),
+          github_url,
+          linkedin_url,
+          profile_image: profile_image || null,
+          updated_at: new Date().toISOString(),
+        }).eq("id", 1);
+        if (error) return fail("Could not save settings", 500, error);
+        return json({ success: true });
+      }
+
       default:
         return fail("Unknown action", 400);
     }

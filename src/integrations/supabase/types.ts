@@ -155,6 +155,42 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          badge: string
+          github_url: string
+          id: number
+          intro: string
+          linkedin_url: string
+          name: string
+          profile_image: string | null
+          tagline: string
+          updated_at: string
+        }
+        Insert: {
+          badge?: string
+          github_url?: string
+          id?: number
+          intro?: string
+          linkedin_url?: string
+          name?: string
+          profile_image?: string | null
+          tagline?: string
+          updated_at?: string
+        }
+        Update: {
+          badge?: string
+          github_url?: string
+          id?: number
+          intro?: string
+          linkedin_url?: string
+          name?: string
+          profile_image?: string | null
+          tagline?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       skills: {
         Row: {
           category: string
