@@ -157,6 +157,7 @@ export type Database = {
       }
       site_settings: {
         Row: {
+          about_content: Json
           badge: string
           github_url: string
           id: number
@@ -168,6 +169,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          about_content?: Json
           badge?: string
           github_url?: string
           id?: number
@@ -179,6 +181,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          about_content?: Json
           badge?: string
           github_url?: string
           id?: number

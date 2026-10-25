@@ -8,6 +8,13 @@
       "when": 1791873893562,
       "tag": "0000_create_site_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792953524296,
+      "tag": "0001_add_about_settings",
+      "breakpoints": true
     }
   ]
 }
