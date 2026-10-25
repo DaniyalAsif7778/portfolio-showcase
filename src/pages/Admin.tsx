@@ -4,6 +4,7 @@ import { Upload, Plus, X, Loader2, Pencil, Trash2, ArrowLeft, Star, ChevronLeft,
 import { adminCall, adminLogin, adminUpload, clearAdminToken, getAdminToken } from '@/lib/adminApi';
 import AdminSkills from '@/components/admin/AdminSkills';
 import AdminHome from '@/components/admin/AdminHome';
+import AdminAbout from '@/components/admin/AdminAbout';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +41,7 @@ const Admin = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
-  const [tab, setTab] = useState<'projects' | 'skills' | 'homepage'>('projects');
+  const [tab, setTab] = useState<'projects' | 'skills' | 'homepage' | 'about'>('projects');
 
   const [view, setView] = useState<'list' | 'form'>('list');
   const [editingId, setEditingId] = useState<string | null>(null);
