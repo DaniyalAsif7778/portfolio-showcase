@@ -80,7 +80,7 @@ export const useSiteSettings = () => {
   const reload = async () => {
     const { data } = await supabase.from('site_settings' as any).select('*').eq('id', 1).maybeSingle();
     if (data) {
-      const row = data as Record<string, unknown>;
+      const row = data as unknown as Record<string, unknown>;
       setSettings({
         ...defaultSettings,
         ...(row as unknown as SiteSettings),
