@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion';
 import { Github, Linkedin, Mail } from 'lucide-react';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const Footer = () => {
+  const { settings } = useSiteSettings();
+
   return (
     <motion.footer
       initial={{ opacity: 0 }}
@@ -13,28 +16,31 @@ const Footer = () => {
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-muted-foreground text-sm">
-            © {new Date().getFullYear()} Daniyal Asif. All rights reserved.
+            © {new Date().getFullYear()} {settings.name}. All rights reserved.
           </p>
-          
+
           <div className="flex items-center gap-6">
             <a
-              href="https://github.com/DaniyalAsif7778"
+              href={settings.github_url}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="GitHub profile"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               <Github size={20} />
             </a>
             <a
-              href="https://www.linkedin.com/in/daniyal-asif-25ba10332/"
+              href={settings.linkedin_url}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="LinkedIn profile"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               <Linkedin size={20} />
             </a>
             <a
-              href="mailto:daniyal.asifjdk7778@gmail.com"
+              href={settings.about.email ? `mailto:${settings.about.email}` : '#'}
+              aria-label="Send email"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               <Mail size={20} />

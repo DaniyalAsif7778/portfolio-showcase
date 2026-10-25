@@ -289,7 +289,7 @@ const Admin = () => {
             </div>
           </div>
           <div className="container mx-auto px-6 max-w-5xl flex gap-1">
-            {(['projects', 'skills', 'homepage'] as const).map((t) => (
+            {(['projects', 'skills', 'homepage', 'about'] as const).map((t) => (
               <button
                 key={t}
                 type="button"
@@ -307,6 +307,10 @@ const Admin = () => {
         {tab === 'homepage' ? (
           <div className="container mx-auto px-6 py-10 max-w-5xl">
             <AdminHome />
+          </div>
+        ) : tab === 'about' ? (
+          <div className="container mx-auto px-6 py-10 max-w-5xl">
+            <AdminAbout />
           </div>
         ) : tab === 'skills' ? (
           <div className="container mx-auto px-6 py-10 max-w-5xl">
