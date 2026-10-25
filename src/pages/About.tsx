@@ -3,19 +3,23 @@ import { GraduationCap, MapPin, Mail, Phone, Target, Heart } from 'lucide-react'
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SectionHeader from '@/components/SectionHeader';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import profileImage from '@/assets/profile-themed.png';
 
 const About = () => {
+  const { settings, loading } = useSiteSettings();
+  const a = settings.about;
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <main className="pt-24 pb-16">
         <section className="container mx-auto px-6 py-16">
           <SectionHeader
             as="h1"
-            title="About Me"
-            subtitle="Get to know me better"
+            title={a.heading}
+            subtitle={a.subtitle}
           />
 
           <div className="grid lg:grid-cols-2 gap-16 items-start max-w-6xl mx-auto">
@@ -32,40 +36,43 @@ const About = () => {
                   <div className="relative w-48 h-48">
                     <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent blur-xl opacity-40 animate-pulse" />
                     <img
-                      src={profileImage}
-                      alt="Daniyal Asif"
+                      src={settings.profile_image || profileImage}
+                      alt={settings.name}
                       className="relative w-full h-full rounded-full object-cover border-4 border-primary/30 shadow-2xl"
                     />
                   </div>
                 </div>
                 <h3 className="text-2xl font-display font-semibold mb-6 gradient-text">
-                  Who I Am
+                  {a.whoTitle}
                 </h3>
-                <p className="text-muted-foreground leading-relaxed mb-6">
-                  I'm a results-oriented Frontend Developer from Rawalpindi, Pakistan, 
-                  specializing in building responsive, accessible, and user-centric web 
-                  applications with React and modern frontend technologies.
-                </p>
-                <p className="text-muted-foreground leading-relaxed mb-8">
-                  With a proven ability to design and implement real-world projects with 
-                  clean, maintainable code and strong problem-solving skills, I'm eager to 
-                  leverage my React expertise to contribute to impactful user interfaces 
-                  and accelerate professional growth.
-                </p>
+                {a.paragraphs.filter(Boolean).map((p, i) => (
+                  <p
+                    key={i}
+                    className={`text-muted-foreground leading-relaxed ${i === a.paragraphs.filter(Boolean).length - 1 ? 'mb-8' : 'mb-6'}`}
+                  >
+                    {p}
+                  </p>
+                ))}
 
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <MapPin size={20} className="text-primary" />
-                    <span>Rawalpindi, Punjab, Pakistan</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <Mail size={20} className="text-primary" />
-                    <span>daniyal.asifjdk7778@gmail.com</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <Phone size={20} className="text-primary" />
-                    <span>0312 1982877</span>
-                  </div>
+                  {a.location && (
+                    <div className="flex items-center gap-3 text-muted-foreground">
+                      <MapPin size={20} className="text-primary" />
+                      <span>{a.location}</span>
+                    </div>
+                  )}
+                  {a.email && (
+                    <div className="flex items-center gap-3 text-muted-foreground">
+                      <Mail size={20} className="text-primary" />
+                      <span>{a.email}</span>
+                    </div>
+                  )}
+                  {a.phone && (
+                    <div className="flex items-center gap-3 text-muted-foreground">
+                      <Phone size={20} className="text-primary" />
+                      <span>{a.phone}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -73,84 +80,76 @@ const About = () => {
             {/* Right Column - Education & Goals */}
             <div className="space-y-8">
               {/* Education */}
-              <motion.div
-                initial={{ opacity: 0, x: 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                viewport={{ once: true }}
-                className="glass-card p-8"
-              >
-                <h3 className="text-2xl font-display font-semibold mb-6 flex items-center gap-3">
-                  <GraduationCap className="text-primary" />
-                  Education
-                </h3>
-                <div className="space-y-6">
-                  <div className="border-l-2 border-primary pl-4">
-                    <h4 className="font-semibold text-foreground">Intermediate Computer Science (ICS)</h4>
-                    <p className="text-muted-foreground">Superior College Pindsultani</p>
-                    <p className="text-sm text-primary">Jan 2023 – Jan 2025</p>
+              {a.education.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                  viewport={{ once: true }}
+                  className="glass-card p-8"
+                >
+                  <h3 className="text-2xl font-display font-semibold mb-6 flex items-center gap-3">
+                    <GraduationCap className="text-primary" />
+                    {a.educationTitle}
+                  </h3>
+                  <div className="space-y-6">
+                    {a.education.map((e, i) => (
+                      <div key={i} className={`border-l-2 ${i % 2 === 0 ? 'border-primary' : 'border-secondary'} pl-4`}>
+                        <h4 className="font-semibold text-foreground">{e.title}</h4>
+                        <p className="text-muted-foreground">{e.school}</p>
+                        <p className="text-sm text-primary">{e.period}</p>
+                      </div>
+                    ))}
                   </div>
-                  <div className="border-l-2 border-secondary pl-4">
-                    <h4 className="font-semibold text-foreground">Matric in Computer Science</h4>
-                    <p className="text-muted-foreground">SPIRIT SCHOOL Basal</p>
-                    <p className="text-sm text-primary">Jan 2021 – Jan 2023</p>
-                  </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              )}
 
               {/* Goals */}
-              <motion.div
-                initial={{ opacity: 0, x: 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                viewport={{ once: true }}
-                className="glass-card p-8"
-              >
-                <h3 className="text-2xl font-display font-semibold mb-6 flex items-center gap-3">
-                  <Target className="text-primary" />
-                  My Goals
-                </h3>
-                <ul className="space-y-4 text-muted-foreground">
-                  <li className="flex items-start gap-3">
-                    <span className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                    Master advanced React patterns and state management
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                    Contribute to open-source projects and communities
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                    Build impactful web applications that solve real problems
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                    Grow as a full-stack developer over time
-                  </li>
-                </ul>
-              </motion.div>
+              {a.goals.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  viewport={{ once: true }}
+                  className="glass-card p-8"
+                >
+                  <h3 className="text-2xl font-display font-semibold mb-6 flex items-center gap-3">
+                    <Target className="text-primary" />
+                    {a.goalsTitle}
+                  </h3>
+                  <ul className="space-y-4 text-muted-foreground">
+                    {a.goals.filter(Boolean).map((g, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <span className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
+                        {g}
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              )}
 
               {/* Languages */}
-              <motion.div
-                initial={{ opacity: 0, x: 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                viewport={{ once: true }}
-                className="glass-card p-8"
-              >
-                <h3 className="text-2xl font-display font-semibold mb-6 flex items-center gap-3">
-                  <Heart className="text-primary" />
-                  Languages
-                </h3>
-                <div className="flex gap-4">
-                  <span className="px-4 py-2 rounded-full bg-secondary text-foreground font-medium">
-                    Urdu (Native)
-                  </span>
-                  <span className="px-4 py-2 rounded-full bg-secondary text-foreground font-medium">
-                    English (Fluent)
-                  </span>
-                </div>
-              </motion.div>
+              {a.languages.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                  viewport={{ once: true }}
+                  className="glass-card p-8"
+                >
+                  <h3 className="text-2xl font-display font-semibold mb-6 flex items-center gap-3">
+                    <Heart className="text-primary" />
+                    {a.languagesTitle}
+                  </h3>
+                  <div className="flex flex-wrap gap-4">
+                    {a.languages.filter(Boolean).map((l, i) => (
+                      <span key={i} className="px-4 py-2 rounded-full bg-secondary text-foreground font-medium">
+                        {l}
+                      </span>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
             </div>
           </div>
         </section>

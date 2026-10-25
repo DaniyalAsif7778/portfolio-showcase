@@ -220,7 +220,7 @@ Deno.serve(async (req) => {
         return json({ success: true });
       }
 
-      // ----- homepage settings -----
+      // ----- homepage & about settings -----
       case "settings_update": {
         const s = body?.settings ?? {};
         const name = str(s.name, 100);
@@ -231,7 +231,43 @@ Deno.serve(async (req) => {
         if (!isSafeUrl(github_url) || !isSafeUrl(linkedin_url) || !isSafeUrl(profile_image)) {
           return fail("Links must start with http:// or https://", 400);
         }
-        const { error } = await supabase.from("site_settings").update({
+
+        // ----- about page content (optional; only validate/update when provided) -----
+        let about_payload: Record<string, unknown> | undefined;
+        if (s.about && typeof s.about === "object") {
+          const a = s.about as Record<string, unknown>;
+          const strList = (v: unknown, maxItems: number, maxLen: number) =>
+            Array.isArray(v)
+              ? v.filter((t) => typeof t === "string" && t.trim()).slice(0, maxItems).map((t: string) => t.trim().slice(0, maxLen))
+              : [];
+          const education = Array.isArray(a.education)
+            ? (a.education as Record<string, unknown>[])
+                .filter((e) => str(e?.title, 200))
+                .slice(0, 20)
+                .map((e) => ({
+                  title: str(e?.title, 200),
+                  school: str(e?.school, 200),
+                  period: str(e?.period, 100),
+                }))
+            : [];
+          about_payload = {
+            heading: str(a.heading, 100) || "About Me",
+            subtitle: str(a.subtitle, 200),
+            whoTitle: str(a.whoTitle, 100) || "Who I Am",
+            paragraphs: strList(a.paragraphs, 10, 2000),
+            location: str(a.location, 200),
+            email: str(a.email, 200),
+            phone: str(a.phone, 60),
+            educationTitle: str(a.educationTitle, 100) || "Education",
+            education,
+            goalsTitle: str(a.goalsTitle, 100) || "My Goals",
+            goals: strList(a.goals, 20, 300),
+            languagesTitle: str(a.languagesTitle, 100) || "Languages",
+            languages: strList(a.languages, 12, 60),
+          };
+        }
+
+        const update: Record<string, unknown> = {
           name,
           badge: str(s.badge, 100),
           tagline: str(s.tagline, 200),
@@ -240,7 +276,10 @@ Deno.serve(async (req) => {
           linkedin_url,
           profile_image: profile_image || null,
           updated_at: new Date().toISOString(),
-        }).eq("id", 1);
+        };
+        if (about_payload) update.about_content = about_payload;
+
+        const { error } = await supabase.from("site_settings").update(update).eq("id", 1);
         if (error) return fail("Could not save settings", 500, error);
         return json({ success: true });
       }
