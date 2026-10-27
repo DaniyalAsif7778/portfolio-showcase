@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Github, Linkedin, Mail } from 'lucide-react';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
@@ -15,9 +16,19 @@ const Footer = () => {
     >
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-muted-foreground text-sm">
-            © {new Date().getFullYear()} {settings.name}. All rights reserved.
-          </p>
+          <div className="text-center md:text-left">
+            <p className="text-muted-foreground text-sm">
+              © {new Date().getFullYear()} {settings.name}. All rights reserved.
+            </p>
+            <div className="flex items-center gap-4 text-sm mt-1">
+              <Link to="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
+                Privacy Policy
+              </Link>
+              <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors">
+                Terms and Conditions
+              </Link>
+            </div>
+          </div>
 
           <div className="flex items-center gap-6">
             <a

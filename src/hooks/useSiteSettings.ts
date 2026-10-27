@@ -65,7 +65,7 @@ export const defaultSettings: SiteSettings = {
   profile_image: null,
   badge: 'Frontend Developer',
   name: 'Daniyal Asif',
-  tagline: 'Frontend Developer — React & Modern Web Apps',
+  tagline: 'Frontend Developer for React & Modern Web Apps',
   intro:
     'Results-oriented Frontend Developer specializing in building responsive, accessible, and user-centric web applications with React and modern frontend technologies.',
   github_url: 'https://github.com/DaniyalAsif7778',
