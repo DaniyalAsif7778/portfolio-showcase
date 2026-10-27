@@ -2,6 +2,8 @@ import { NavLink as RouterNavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
+import profileAsset from '@/assets/daniyal-photo.png.asset.json';
 
 const navItems = [
   { path: '/', label: 'Home' },
@@ -14,6 +16,7 @@ const navItems = [
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { settings } = useSiteSettings();
 
   return (
     <motion.nav
@@ -24,8 +27,15 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <RouterNavLink to="/" className="text-xl font-display font-bold gradient-text">
-            Daniyal<span className="text-foreground">.</span>
+          <RouterNavLink to="/" className="flex items-center gap-2.5">
+            <img
+              src={settings.profile_image || profileAsset.url}
+              alt=""
+              className="w-8 h-8 rounded-full object-cover border border-primary/40"
+            />
+            <span className="text-xl font-display font-bold gradient-text">
+              Daniyal<span className="text-foreground">.</span>
+            </span>
           </RouterNavLink>
 
           {/* Desktop Navigation */}
