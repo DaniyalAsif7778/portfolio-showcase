@@ -11,6 +11,8 @@ import ProjectDetail from "./pages/ProjectDetail";
 import GitHub from "./pages/GitHub";
 import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +32,8 @@ const App = () => (
           <Route path="/github" element={<GitHub />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin-panel" element={<Admin />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
