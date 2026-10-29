@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import SkillCircle from '@/components/SkillCircle';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import profileImage from '@/assets/profile-themed.png';
+import profileAsset from '@/assets/daniyal-photo.png.asset.json';
 import { useSkills } from '@/hooks/useSkills';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
@@ -45,7 +45,7 @@ const Index = () => {
               <div className="relative w-40 h-40 md:w-48 md:h-48 mx-auto">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent blur-xl opacity-50 animate-pulse" />
                 <img
-                  src={settings.profile_image || profileImage}
+                  src={settings.profile_image || profileAsset.url}
                   alt={settings.name}
                   className="relative w-full h-full rounded-full object-cover border-4 border-primary/30 shadow-2xl"
                 />

@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { adminCall, adminUpload } from '@/lib/adminApi';
 import { useSiteSettings, SiteSettings } from '@/hooks/useSiteSettings';
-import fallbackImage from '@/assets/profile-themed.png';
+import fallbackImage from '@/assets/daniyal-photo.png.asset.json';
 
 const AdminHome = () => {
   const { settings, loading } = useSiteSettings();
@@ -61,7 +61,7 @@ const AdminHome = () => {
     <form onSubmit={save} className="glass-card p-6 grid gap-5 sm:grid-cols-2">
       <div className="sm:col-span-2 flex items-center gap-5">
         <img
-          src={form.profile_image || fallbackImage}
+          src={form.profile_image || fallbackImage.url}
           alt="Profile preview"
           className="w-24 h-24 rounded-full object-cover border-4 border-primary/30"
         />

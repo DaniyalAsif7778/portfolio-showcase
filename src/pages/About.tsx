@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SectionHeader from '@/components/SectionHeader';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import profileImage from '@/assets/profile-themed.png';
+import profileAsset from '@/assets/daniyal-photo.png.asset.json';
 
 const About = () => {
   const { settings, loading } = useSiteSettings();
@@ -36,7 +36,7 @@ const About = () => {
                   <div className="relative w-48 h-48">
                     <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent blur-xl opacity-40 animate-pulse" />
                     <img
-                      src={settings.profile_image || profileImage}
+                      src={settings.profile_image || profileAsset.url}
                       alt={settings.name}
                       className="relative w-full h-full rounded-full object-cover border-4 border-primary/30 shadow-2xl"
                     />
