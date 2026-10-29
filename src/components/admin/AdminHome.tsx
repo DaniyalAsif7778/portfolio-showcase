@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { adminCall, adminUpload } from '@/lib/adminApi';
 import { useSiteSettings, SiteSettings } from '@/hooks/useSiteSettings';
-import fallbackImage from '@/assets/profile-themed.png';
+import fallbackImage from '@/assets/daniyal-photo.png.asset.json';
 
 const AdminHome = () => {
   const { settings, loading } = useSiteSettings();

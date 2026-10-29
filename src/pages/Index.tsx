@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import SkillCircle from '@/components/SkillCircle';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import profileImage from '@/assets/profile-themed.png';
+import profileAsset from '@/assets/daniyal-photo.png.asset.json';
 import { useSkills } from '@/hooks/useSkills';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 

@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SectionHeader from '@/components/SectionHeader';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import profileImage from '@/assets/profile-themed.png';
+import profileAsset from '@/assets/daniyal-photo.png.asset.json';
 
 const About = () => {
   const { settings, loading } = useSiteSettings();
