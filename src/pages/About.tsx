@@ -36,7 +36,7 @@ const About = () => {
                   <div className="relative w-48 h-48">
                     <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent blur-xl opacity-40 animate-pulse" />
                     <img
-                      src={settings.profile_image || profileImage}
+                      src={settings.profile_image || profileAsset.url}
                       alt={settings.name}
                       className="relative w-full h-full rounded-full object-cover border-4 border-primary/30 shadow-2xl"
                     />
