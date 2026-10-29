@@ -3,12 +3,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-token",
+  "Access-Control-Expose-Headers": "Retry-After",
 };
 
-const json = (body: unknown, status = 200) =>
+const json = (body: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json", ...extraHeaders },
   });
 
 const supabase = createClient(
@@ -74,10 +75,34 @@ async function verifyToken(token: string | null) {
   }
 }
 
-// ---------- brute-force protection (best effort, per instance) ----------
-const failures = new Map<string, { count: number; until: number }>();
+// ---------- persistent rate limiting (shared across function instances) ----------
 const clientIp = (req: Request) =>
-  (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
+  (req.headers.get("cf-connecting-ip") ?? req.headers.get("x-real-ip") ?? req.headers.get("x-forwarded-for") ?? "")
+    .split(",")[0].trim().slice(0, 64) || "unknown";
+
+async function enforceRateLimit(scope: string, subject: string, maxRequests: number, windowSeconds: number) {
+  const bucketKey = await hmac(`rate-limit:${scope}:${subject}`);
+  const { data, error } = await supabase.rpc("consume_edge_rate_limit", {
+    p_bucket_key: bucketKey,
+    p_limit_count: maxRequests,
+    p_window_seconds: windowSeconds,
+  });
+  if (error) {
+    console.error("Rate limit check failed", error);
+    return fail("Rate limiting is temporarily unavailable. Please try again shortly.", 503);
+  }
+
+  const result = Array.isArray(data) ? data[0] : data;
+  if (!result || typeof result.allowed !== "boolean") {
+    console.error("Rate limit check returned an invalid result");
+    return fail("Rate limiting is temporarily unavailable. Please try again shortly.", 503);
+  }
+  if (!result.allowed) {
+    const retryAfter = Math.max(1, Number(result.retry_after_seconds) || windowSeconds);
+    return json({ error: "Too many requests. Please try again later." }, 429, { "Retry-After": String(retryAfter) });
+  }
+  return null;
+}
 
 // ---------- input helpers ----------
 const str = (v: unknown, max = 5000) => (typeof v === "string" ? v.trim().slice(0, max) : "");
@@ -109,28 +134,31 @@ Deno.serve(async (req) => {
       const peek = await req.clone().json().catch(() => ({}));
       if (peek?.action === "login") {
         const ip = clientIp(req);
-        const f = failures.get(ip);
-        if (f && f.until > Date.now()) return fail("Too many attempts. Try again later.", 429);
-
         const username = str(peek.username, 100);
+        const ipLimit = await enforceRateLimit("admin-login-ip", ip, 40, 15 * 60);
+        if (ipLimit) return ipLimit;
+        const accountLimit = await enforceRateLimit("admin-login-account", username.toLowerCase() || "empty", 8, 15 * 60);
+        if (accountLimit) return accountLimit;
+
         const password = typeof peek.password === "string" ? peek.password.slice(0, 200) : "";
         const ok = ADMIN_USERNAME.length > 0 && safeEqual(username, ADMIN_USERNAME) && (await verifyPassword(password));
 
         if (!ok) {
-          const count = (f?.count ?? 0) + 1;
-          failures.set(ip, { count, until: count >= 5 ? Date.now() + 15 * 60 * 1000 : 0 });
           await new Promise((r) => setTimeout(r, 800));
           return fail("Invalid credentials", 401);
         }
-        failures.delete(ip);
         return json({ token: await issueToken(), expiresIn: SESSION_TTL_MS });
       }
     }
 
     // ---------- everything else requires a valid session ----------
     if (!(await verifyToken(req.headers.get("x-admin-token")))) return fail("Unauthorized", 401);
+    const sessionLimit = await enforceRateLimit("admin-session", "admin", 300, 10 * 60);
+    if (sessionLimit) return sessionLimit;
 
     if (contentType.includes("multipart/form-data")) {
+      const uploadLimit = await enforceRateLimit("admin-image-upload", "admin", 60, 60 * 60);
+      if (uploadLimit) return uploadLimit;
       const form = await req.formData();
       const file = form.get("file");
       if (!(file instanceof File)) return fail("No file provided", 400);
@@ -183,6 +211,9 @@ Deno.serve(async (req) => {
           ? await supabase.from("projects").insert(payload)
           : await supabase.from("projects").update(payload).eq("id", str(body?.id, 100));
         if (error) {
+          if ((error as { code?: string }).code === "42703" && /video_url/i.test(error.message)) {
+            return fail("The Supabase projects table is missing video_url. Apply supabase/migrations/20261029103000_add_project_video_url.sql before saving projects.", 500);
+          }
           if ((error as { code?: string }).code === "23505") return fail("That URL slug is already used by another project", 400);
           return fail("Could not save project", 500, error);
         }

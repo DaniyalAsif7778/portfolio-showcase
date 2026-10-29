@@ -49,6 +49,7 @@ const Admin = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loadingList, setLoadingList] = useState(false);
+  const [videoColumnStatus, setVideoColumnStatus] = useState<'checking' | 'ready' | 'missing' | 'unavailable'>('checking');
 
   const [form, setForm] = useState({ ...emptyForm });
   const [techInput, setTechInput] = useState('');
@@ -59,11 +60,17 @@ const Admin = () => {
 
   const fetchProjects = useCallback(async () => {
     setLoadingList(true);
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: false });
+    const [projectResult, videoColumnResult] = await Promise.all([
+      supabase.from('projects').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: false }),
+      supabase.from('projects').select('video_url').limit(1),
+    ]);
+    const columnError = videoColumnResult.error;
+    setVideoColumnStatus(!columnError
+      ? 'ready'
+      : columnError.code === '42703' || /video_url.*does not exist|column.*video_url/i.test(columnError.message)
+        ? 'missing'
+        : 'unavailable');
+    const { data, error } = projectResult;
     if (error) toast({ title: 'Error', description: 'Could not load projects.', variant: 'destructive' });
     else setProjects((data || []) as Project[]);
     setLoadingList(false);
@@ -179,6 +186,14 @@ const Admin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (videoColumnStatus === 'missing') {
+      toast({
+        title: 'Supabase database migration required',
+        description: 'Apply supabase/migrations/20261029103000_add_project_video_url.sql in the Supabase SQL Editor, then refresh this page before saving project changes.',
+        variant: 'destructive',
+      });
+      return;
+    }
     if (!form.title || !form.description) {
       toast({ title: 'Error', description: 'Title and description are required', variant: 'destructive' });
       return;
@@ -567,14 +582,15 @@ const Admin = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Scroll-scrub video URL (optional)</label>
+              <label className="text-sm font-medium text-foreground">Project video URL (optional)</label>
               <Input
                 type="url"
-                placeholder="https://cdn.example.com/project-demo.mp4"
+                placeholder="YouTube link or direct MP4/WebM URL"
                 value={form.videoUrl}
                 onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
               />
-              <p className="text-xs text-muted-foreground">Use a direct MP4 or WebM video link. The project detail page will scrub through it as visitors scroll.</p>
+              <p className="text-xs text-muted-foreground">YouTube links play on the project detail page. Direct MP4 or WebM links use scroll scrubbing. EmpoManager shows a public sample video until you add its own.</p>
+              {videoColumnStatus === 'missing' && <p role="alert" className="text-sm font-medium text-destructive">This Supabase database is missing the video_url column. Project updates cannot be saved until the video URL migration is applied.</p>}
             </div>
 
             <div className="space-y-2">

@@ -68,7 +68,8 @@
   }
 
   * { @apply border-border; }
-  html { scroll-behavior: smooth; background: hsl(var(--background)); }
+  html { scroll-behavior: smooth; background: hsl(var(--background)); overflow-x: clip; }
+  body, #root { min-width: 0; max-width: 100%; }
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'DM Sans', sans-serif;

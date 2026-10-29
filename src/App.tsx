@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
+import SEO from "@/components/SEO";
 
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const Profiles = lazy(() => import("./pages/Profiles"));
@@ -34,7 +35,7 @@ const App = () => (
               <Route path="/profiles" element={<Profiles />} />
               <Route path="/github" element={<Navigate to="/profiles" replace />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/admin-panel" element={<Admin />} />
+              <Route path="/admin-panel" element={<><SEO title="Portfolio Admin" description="Portfolio content administration." noIndex /><Admin /></>} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="*" element={<NotFound />} />

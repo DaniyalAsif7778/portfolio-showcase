@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { getYouTubeEmbedUrl } from '@/lib/projectVideo';
 
 type ProjectVideoScrubProps = {
   src: string;
@@ -8,23 +9,18 @@ type ProjectVideoScrubProps = {
   title: string;
 };
 
-/** Scroll scrubbing is enabled after metadata loads; reduced-motion users get native controls. */
+/** Direct videos keep native controls; scroll scrubbing is disabled for reduced-motion users. */
 const ProjectVideoScrub = ({ src, poster, title }: ProjectVideoScrubProps) => {
+  const youtubeEmbedUrl = getYouTubeEmbedUrl(src);
   const sectionRef = useRef<HTMLElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   useEffect(() => {
-    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReducedMotion(preference.matches);
-    const updatePreference = (event: MediaQueryListEvent) => setReducedMotion(event.matches);
-    preference.addEventListener('change', updatePreference);
-
     const video = videoRef.current;
     const section = sectionRef.current;
     const frame = frameRef.current;
-    if (!video || !section || !frame) return () => preference.removeEventListener('change', updatePreference);
+    if (!video || !section || !frame) return;
 
     gsap.registerPlugin(ScrollTrigger);
     const media = gsap.matchMedia();
@@ -38,14 +34,12 @@ const ProjectVideoScrub = ({ src, poster, title }: ProjectVideoScrubProps) => {
       }, (context) => {
         if (context.conditions?.reduceMotion) {
           video.pause();
-          setReducedMotion(true);
           return;
         }
 
-        setReducedMotion(false);
         video.pause();
         const pinVideo = Boolean(context.conditions?.wideScreen);
-        const getScrollDistance = () => Math.ceil(video.duration * Math.max(36, window.innerHeight / 8));
+        const getScrollDistance = () => Math.ceil(video.duration * Math.max(32, window.innerHeight / 10));
         const tween = gsap.to(video, {
           currentTime: video.duration,
           ease: 'none',
@@ -70,7 +64,6 @@ const ProjectVideoScrub = ({ src, poster, title }: ProjectVideoScrubProps) => {
     video.addEventListener('loadedmetadata', setupScrub);
     if (video.readyState >= 1) setupScrub();
     return () => {
-      preference.removeEventListener('change', updatePreference);
       video.removeEventListener('loadedmetadata', setupScrub);
       media.revert();
       video.pause();
@@ -79,12 +72,16 @@ const ProjectVideoScrub = ({ src, poster, title }: ProjectVideoScrubProps) => {
 
   return (
     <section ref={sectionRef} className="project-film-section" aria-label={`${title} project film`}>
-      <div className="project-film-intro"><p className="eyebrow">A closer look / Scroll to play</p><h2>In motion.</h2><p>Scroll through the presentation. The footage follows your pace.</p></div>
+      <div className="project-film-intro"><p className="eyebrow">{youtubeEmbedUrl ? 'Project video' : 'A closer look / Scroll to play'}</p><h2>{youtubeEmbedUrl ? 'Watch the demo.' : 'In motion.'}</h2><p>{youtubeEmbedUrl ? 'Play the walkthrough to see the project in action.' : 'Scroll through the presentation. The footage follows your pace.'}</p></div>
       <div ref={frameRef} className="project-film-frame">
-        <video ref={videoRef} src={src} poster={poster || undefined} preload="metadata" muted playsInline controls={reducedMotion} aria-label={`${title} video presentation; scroll to scrub through the footage`}>
-          Your browser does not support embedded video.
-        </video>
-        <span className="project-film-caption">SCROLL CONTROLLED PRESENTATION</span>
+        {youtubeEmbedUrl ? (
+          <iframe src={youtubeEmbedUrl} title={`${title} project video`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen />
+        ) : (
+          <video ref={videoRef} src={src} poster={poster || undefined} preload="metadata" playsInline controls aria-label={`${title} video presentation; use the controls or scroll to scrub through the footage`}>
+            Your browser does not support embedded video.
+          </video>
+        )}
+        <span className="project-film-caption">{youtubeEmbedUrl ? 'YOUTUBE PROJECT WALKTHROUGH' : 'SCROLL CONTROLLED PRESENTATION'}</span>
       </div>
     </section>
   );

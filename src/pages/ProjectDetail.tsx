@@ -7,6 +7,8 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
 import ProjectVideoScrub from '@/components/ProjectVideoScrub';
+import { withCurrentProjectContent } from '@/lib/featuredProjectContent';
+import SEO from '@/components/SEO';
 
 interface Project {
   id: string;
@@ -29,6 +31,7 @@ const ProjectDetail = () => {
   const [selectedImage, setSelectedImage] = useState(0);
 
   useEffect(() => {
+    let active = true;
     const fetchProject = async () => {
       if (!slug) return;
       const { data } = await supabase
@@ -36,10 +39,21 @@ const ProjectDetail = () => {
         .select('*')
         .eq('slug', slug)
         .single();
-      if (data) setProject(data as Project);
+      if (!active) return;
+      setProject(data ? withCurrentProjectContent(data as Project) : null);
       setLoading(false);
     };
-    fetchProject();
+    const projectUpdates = slug ? supabase
+      .channel(`project-detail-${slug}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects', filter: `slug=eq.${slug}` }, () => {
+        void fetchProject();
+      })
+      .subscribe() : null;
+    void fetchProject();
+    return () => {
+      active = false;
+      if (projectUpdates) void supabase.removeChannel(projectUpdates);
+    };
   }, [slug]);
 
   if (loading) {
@@ -58,6 +72,7 @@ const ProjectDetail = () => {
   if (!project) {
     return (
       <div className="min-h-screen bg-background">
+        <SEO title="Project not found" description="This portfolio project could not be found." path={`/projects/${slug || ''}`} noIndex />
         <Navbar />
         <main className="pt-24 pb-16 container mx-auto px-6 text-center">
           <h2 className="text-2xl font-display font-bold mb-4">Project not found</h2>
@@ -72,6 +87,21 @@ const ProjectDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={`${project.title} | Daniyal Asif`}
+        description={project.description}
+        path={`/projects/${project.slug}`}
+        image={project.images?.[0] || '/daniyal-profile.png'}
+        structuredData={{
+          '@type': 'CreativeWork',
+          name: project.title,
+          description: project.description,
+          url: `${import.meta.env.VITE_SITE_URL || 'https://portfolio-showcase-rho.vercel.app'}/projects/${project.slug}`,
+          image: project.images?.[0],
+          author: { '@type': 'Person', name: 'Daniyal Asif' },
+          keywords: project.tech_stack?.join(', '),
+        }}
+      />
       <Navbar />
 
       <main className="pt-24 pb-20">

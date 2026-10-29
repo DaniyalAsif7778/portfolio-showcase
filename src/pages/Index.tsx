@@ -6,9 +6,13 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { gsap } from 'gsap';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import ProjectVideoPreview from '@/components/ProjectVideoPreview';
 import { defaultAbout, linkedinProfileUrl, useSiteSettings } from '@/hooks/useSiteSettings';
 import { useSkills } from '@/hooks/useSkills';
 import { supabase } from '@/integrations/supabase/client';
+import { withCurrentProjectContent } from '@/lib/featuredProjectContent';
+import { getYouTubeThumbnailUrl } from '@/lib/projectVideo';
+import SEO from '@/components/SEO';
 
 type Project = {
   title: string;
@@ -18,6 +22,7 @@ type Project = {
   live_url: string | null;
   slug: string;
   images: string[] | null;
+  video_url: string | null;
 };
 
 const easing = 'M0,0 C0.16,1 0.3,1 1,1';
@@ -33,6 +38,7 @@ const Index = () => {
   const { settings } = useSiteSettings();
   const { skills } = useSkills();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [projectsLoadError, setProjectsLoadError] = useState(false);
   const [activeProject, setActiveProject] = useState(0);
   const [projectDeckPinned, setProjectDeckPinned] = useState(false);
   const about = { ...defaultAbout, ...settings.about };
@@ -47,9 +53,45 @@ const Index = () => {
 
   useEffect(() => {
     let active = true;
-    supabase.from('projects').select('title, description, tech_stack, github_url, live_url, slug, images').order('sort_order').order('created_at', { ascending: false })
-      .then(({ data }) => { if (active) setProjects((data as Project[]) || []); });
-    return () => { active = false; };
+    const loadProjects = async () => {
+      const result = await supabase.from('projects').select('title, description, tech_stack, github_url, live_url, slug, images, video_url').order('sort_order').order('created_at', { ascending: false });
+      if (result.error && /video_url/i.test(result.error.message)) {
+        const fallback = await supabase.from('projects').select('title, description, tech_stack, github_url, live_url, slug, images').order('sort_order').order('created_at', { ascending: false });
+        if (fallback.error) {
+          console.error('Unable to load portfolio projects:', fallback.error.message);
+          if (active) setProjectsLoadError(true);
+          return;
+        }
+        if (active) {
+          setProjects((fallback.data || []).map((project) => withCurrentProjectContent({ ...project, video_url: null })));
+          setProjectsLoadError(false);
+        }
+        return;
+      }
+      if (result.error) {
+        console.error('Unable to load portfolio projects:', result.error.message);
+        if (active) setProjectsLoadError(true);
+        return;
+      }
+      if (active) {
+        setProjects(((result.data as Project[]) || []).map(withCurrentProjectContent));
+        setProjectsLoadError(false);
+      }
+    };
+    const projectUpdates = supabase
+      .channel('home-projects-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => {
+        void loadProjects().catch((error: unknown) => console.error('Unable to refresh portfolio projects:', error));
+      })
+      .subscribe();
+    void loadProjects().catch((error: unknown) => {
+      console.error('Unable to load portfolio projects:', error);
+      if (active) setProjectsLoadError(true);
+    });
+    return () => {
+      active = false;
+      void supabase.removeChannel(projectUpdates);
+    };
   }, []);
 
   useEffect(() => {
@@ -80,7 +122,7 @@ const Index = () => {
     gsap.registerPlugin(ScrollTrigger);
     const media = gsap.matchMedia();
     let refreshFrame = 0;
-    media.add('(min-width: 768px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)', () => {
+    media.add('(min-width: 768px) and (min-height: 560px) and (prefers-reduced-motion: no-preference)', () => {
       const section = projectsSectionRef.current;
       const pin = projectsPinRef.current;
       const track = projectsTrackRef.current;
@@ -100,16 +142,17 @@ const Index = () => {
             if (!viewportWidth) return '+=0';
             const horizontalDistance = Math.max(0, track.scrollWidth - viewportWidth);
             const viewportCount = horizontalDistance / viewportWidth;
-            return `+=${Math.ceil(viewportCount * window.innerHeight)}`;
+            const scrollRoomPerProject = window.innerHeight * 1.15;
+            return `+=${Math.ceil(viewportCount * scrollRoomPerProject)}`;
           },
-          scrub: 1,
+          scrub: 0.65,
           anticipatePin: 1,
           pinSpacing: true,
           invalidateOnRefresh: true,
           snap: {
             snapTo: (progress) => Math.round(progress * (projects.length - 1)) / (projects.length - 1),
-            duration: { min: 0.25, max: 0.45 },
-            delay: 0.12,
+            duration: { min: 0.4, max: 0.65 },
+            delay: 0.2,
             ease: 'power2.out',
             inertia: false,
           },
@@ -134,9 +177,27 @@ const Index = () => {
 
   return (
     <div ref={pageRef} className="min-h-screen bg-background">
+      <SEO
+        title="Daniyal Asif | MERN Stack Developer Portfolio"
+        description="Portfolio of Daniyal Asif, a MERN Stack Developer in Rawalpindi, Pakistan. Explore full stack web applications built with MongoDB, Express.js, React, and Node.js."
+        path="/"
+        structuredData={{
+          '@type': 'Person',
+          name: 'Daniyal Asif',
+          jobTitle: 'MERN Stack Developer',
+          image: '/daniyal-profile.png',
+          url: `${import.meta.env.VITE_SITE_URL || 'https://portfolio-showcase-rho.vercel.app'}/`,
+          sameAs: ['https://github.com/DaniyalAsif7778', 'https://www.linkedin.com/in/daniyal-asif-25ba10332/'],
+          address: { '@type': 'PostalAddress', addressLocality: 'Rawalpindi', addressCountry: 'PK' },
+          knowsAbout: ['MongoDB', 'Express.js', 'React', 'Node.js', 'TypeScript', 'REST APIs', 'Responsive web design'],
+        }}
+      />
       <Navbar />
       <main>
         <section id="top" className="container hero-grid scroll-mt-24" aria-labelledby="hero-title">
+          <div className="hero-art hero-reveal">
+            <div className="hero-portrait-frame"><img className="hero-portrait" src="/daniyal-profile.png" alt={`Portrait of ${settings.name}, MERN Stack Developer`} width="800" height="800" /></div>
+          </div>
           <div className="hero-copy">
             <p className="eyebrow hero-reveal mb-7 flex items-center gap-3"><span className="h-px w-8 bg-[var(--green)]" />MERN Stack Developer<span className="text-[var(--green)]">/</span>Rawalpindi, Pakistan</p>
             <h1 id="hero-title" className="hero-title hero-reveal">Building clear, <em>considered</em> digital experiences.</h1>
@@ -150,9 +211,6 @@ const Index = () => {
               <a href={linkedinProfileUrl} target="_blank" rel="noreferrer" aria-label="LinkedIn profile" className="text-muted-foreground hover:text-foreground"><Linkedin size={18} /></a>
               <span className="h-px w-12 bg-border" /><span className="eyebrow">Available for select projects</span>
             </div>
-          </div>
-          <div className="hero-art hero-reveal">
-              <div className="hero-portrait-frame"><img className="hero-portrait" src="/daniyal-profile.png" alt={`Portrait of ${settings.name}, MERN Stack Developer`} width="800" height="800" /></div>
           </div>
         </section>
 
@@ -175,10 +233,11 @@ const Index = () => {
           <h2 className="sr-only">Featured projects</h2>
           <div ref={projectsPinRef} className="projects-pin">
             <div ref={projectsViewportRef} className="projects-viewport" role="region" aria-label="Selected projects">
-              {projects.length ? <div ref={projectsTrackRef} className="projects-track">
+              {projectsLoadError ? <div className="project-empty-state"><p>Projects couldn’t load.</p><span>Please refresh the page and try again.</span></div> : projects.length ? <div ref={projectsTrackRef} className="projects-track">
                 {projects.map((project, index) => <article key={project.slug} className={`project-slide project-slide-${index % 4}`} aria-label={`Project ${index + 1} of ${projects.length}: ${project.title}`} aria-hidden={projectDeckPinned && activeProject !== index}>
-                  <div className="project-slide-art">
-                    {project.images?.[0] ? <img src={project.images[0]} alt={`${project.title} interface preview`} loading={index === 0 ? 'eager' : 'lazy'} /> : <div className="project-art-placeholder" aria-hidden="true"><div className="mock-browser"><div className="mock-browser-bar"><i /><i /><i /><span>{project.slug}.app</span></div><div className="mock-browser-content"><b>{project.title}</b><div /><div /><div /><span /></div></div><span className="art-orbit art-orbit-a" /><span className="art-orbit art-orbit-b" /></div>}
+                  <div className="project-slide-art group">
+                    {project.images?.[0] || getYouTubeThumbnailUrl(project.video_url) ? <img src={project.images?.[0] || getYouTubeThumbnailUrl(project.video_url) || ''} alt={`${project.title} interface preview`} loading={index === 0 ? 'eager' : 'lazy'} /> : <div className="project-art-placeholder" aria-hidden="true"><div className="mock-browser"><div className="mock-browser-bar"><i /><i /><i /><span>{project.slug}.app</span></div><div className="mock-browser-content"><b>{project.title}</b><div /><div /><div /><span /></div></div><span className="art-orbit art-orbit-a" /><span className="art-orbit art-orbit-b" /></div>}
+                    {project.video_url && <ProjectVideoPreview src={project.video_url} poster={project.images?.[0]} title={project.title} />}
                     <span className="project-art-caption">PROJECT PREVIEW</span>
                   </div>
                   <div className="project-slide-copy">

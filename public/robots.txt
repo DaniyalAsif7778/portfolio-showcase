@@ -1,4 +1,2 @@
 User-agent: *
 Allow: /
-Disallow: /admin-panel
-Sitemap: https://portfolio-showcase-rho.vercel.app/sitemap.xml

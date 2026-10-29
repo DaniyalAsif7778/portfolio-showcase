@@ -1,10 +1,12 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEO from '@/components/SEO';
 
 const lastUpdated = 'October 2026';
 
 const Terms = () => (
   <div className="min-h-screen bg-background">
+    <SEO title="Terms and Conditions" description="Terms for using Daniyal Asif's portfolio website and viewing its project descriptions, images, code samples, and contact form." path="/terms" />
     <Navbar />
     <main className="pt-24 pb-16">
       <section className="container mx-auto px-6 py-16 max-w-3xl">

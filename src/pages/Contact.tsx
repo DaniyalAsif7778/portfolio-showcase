@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SectionHeader from '@/components/SectionHeader';
+import SEO from '@/components/SEO';
 
 // EmailJS configuration placeholders - Replace with your actual IDs
 const EMAILJS_SERVICE_ID = 'service_ax27lze';
@@ -89,6 +90,7 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO title="Contact Daniyal Asif" description="Get in touch with Daniyal Asif about MERN stack development, frontend opportunities, collaborations, and web application projects." path="/contact" />
       <Navbar />
       
       <main className="pt-24 pb-16">

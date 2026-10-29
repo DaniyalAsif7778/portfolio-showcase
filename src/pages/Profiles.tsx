@@ -5,6 +5,7 @@ import { fetchGitHubData } from '@/store/githubSlice';
 import { linkedinProfileUrl } from '@/hooks/useSiteSettings';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEO from '@/components/SEO';
 
 const GITHUB_USERNAME = 'DaniyalAsif7778';
 
@@ -18,6 +19,7 @@ const Profiles = () => {
 
   return (
     <div className="profile-page min-h-screen bg-background">
+      <SEO title="Developer Profiles" description="Find Daniyal Asif on GitHub and LinkedIn. Browse recent repositories, open-source work, and professional profile details." path="/profiles" />
       <Navbar />
       <main className="container profile-main">
         <header className="profile-page-heading">

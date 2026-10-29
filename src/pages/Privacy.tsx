@@ -1,10 +1,12 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SEO from '@/components/SEO';
 
 const lastUpdated = 'October 2026';
 
 const Privacy = () => (
   <div className="min-h-screen bg-background">
+    <SEO title="Privacy Policy" description="Privacy information for Daniyal Asif's portfolio website, including contact form messages, public portfolio content, and visitor data." path="/privacy" />
     <Navbar />
     <main className="pt-24 pb-16">
       <section className="container mx-auto px-6 py-16 max-w-3xl">
