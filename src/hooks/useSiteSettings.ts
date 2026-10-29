@@ -47,8 +47,8 @@ export const defaultAbout: AboutContent = {
   phone: '0312 1982877',
   educationTitle: 'Education',
   education: [
-    { title: 'Intermediate Computer Science (ICS)', school: 'Superior College Pindsultani', period: 'Jan 2023 – Jan 2025' },
-    { title: 'Matric in Computer Science', school: 'SPIRIT SCHOOL Basal', period: 'Jan 2021 – Jan 2023' },
+    { title: 'Intermediate Computer Science (ICS)', school: 'Superior College Pindsultani', period: 'Jan 2023 - Jan 2025' },
+    { title: 'Matric in Computer Science', school: 'SPIRIT SCHOOL Basal', period: 'Jan 2021 - Jan 2023' },
   ],
   goalsTitle: 'My Goals',
   goals: [
