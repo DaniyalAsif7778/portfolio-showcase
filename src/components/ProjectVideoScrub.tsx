@@ -13,7 +13,7 @@ const ProjectVideoScrub = ({ src, poster, title }: ProjectVideoScrubProps) => {
   const sectionRef = useRef<HTMLElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   useEffect(() => {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -27,23 +27,43 @@ const ProjectVideoScrub = ({ src, poster, title }: ProjectVideoScrubProps) => {
     if (!video || !section || !frame) return () => preference.removeEventListener('change', updatePreference);
 
     gsap.registerPlugin(ScrollTrigger);
-    let tween: gsap.core.Tween | undefined;
+    const media = gsap.matchMedia();
+    let mediaInitialized = false;
     const setupScrub = () => {
-      if (!Number.isFinite(video.duration) || video.duration <= 0 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      const isDesktop = window.matchMedia('(min-width: 900px)').matches;
-      video.pause();
-      tween = gsap.to(video, {
-        currentTime: video.duration,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: section,
-          pin: isDesktop ? frame : false,
-          start: 'top top',
-          end: () => `+=${window.innerHeight * (isDesktop ? 2.2 : 1.4)}`,
-          scrub: true,
-          invalidateOnRefresh: true,
-          onUpdate: () => { if (!video.paused) video.pause(); },
-        },
+      if (mediaInitialized || !Number.isFinite(video.duration) || video.duration <= 0) return;
+      mediaInitialized = true;
+      media.add({
+        reduceMotion: '(prefers-reduced-motion: reduce)',
+        wideScreen: '(min-width: 900px)',
+      }, (context) => {
+        if (context.conditions?.reduceMotion) {
+          video.pause();
+          setReducedMotion(true);
+          return;
+        }
+
+        setReducedMotion(false);
+        video.pause();
+        const pinVideo = Boolean(context.conditions?.wideScreen);
+        const getScrollDistance = () => Math.ceil(video.duration * Math.max(36, window.innerHeight / 8));
+        const tween = gsap.to(video, {
+          currentTime: video.duration,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: section,
+            pin: pinVideo ? frame : false,
+            start: 'top top',
+            end: () => `+=${getScrollDistance()}`,
+            scrub: true,
+            invalidateOnRefresh: true,
+            onUpdate: () => { if (!video.paused) video.pause(); },
+          },
+        });
+
+        return () => {
+          tween.scrollTrigger?.kill();
+          tween.kill();
+        };
       });
     };
 
@@ -52,8 +72,8 @@ const ProjectVideoScrub = ({ src, poster, title }: ProjectVideoScrubProps) => {
     return () => {
       preference.removeEventListener('change', updatePreference);
       video.removeEventListener('loadedmetadata', setupScrub);
-      tween?.scrollTrigger?.kill();
-      tween?.kill();
+      media.revert();
+      video.pause();
     };
   }, [src]);
 

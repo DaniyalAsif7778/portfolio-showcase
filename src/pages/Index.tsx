@@ -79,11 +79,13 @@ const Index = () => {
     if (projects.length < 2) return;
     gsap.registerPlugin(ScrollTrigger);
     const media = gsap.matchMedia();
-    media.add('(min-width: 768px) and (min-height: 560px) and (prefers-reduced-motion: no-preference)', () => {
+    let refreshFrame = 0;
+    media.add('(min-width: 768px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)', () => {
       const section = projectsSectionRef.current;
       const pin = projectsPinRef.current;
       const track = projectsTrackRef.current;
-      if (!section || !pin || !projectsViewportRef.current || !track) return;
+      const viewport = projectsViewportRef.current;
+      if (!section || !pin || !viewport || !track) return;
 
       setProjectDeckPinned(true);
       const tween = gsap.to(track, {
@@ -93,7 +95,13 @@ const Index = () => {
           trigger: section,
           pin,
           start: 'top top',
-          end: () => `+=${Math.max(1, projects.length - 1) * window.innerHeight}`,
+          end: () => {
+            const viewportWidth = viewport.clientWidth;
+            if (!viewportWidth) return '+=0';
+            const horizontalDistance = Math.max(0, track.scrollWidth - viewportWidth);
+            const viewportCount = horizontalDistance / viewportWidth;
+            return `+=${Math.ceil(viewportCount * window.innerHeight)}`;
+          },
           scrub: 1,
           anticipatePin: 1,
           pinSpacing: true,
@@ -111,13 +119,17 @@ const Index = () => {
           },
         },
       });
-      requestAnimationFrame(() => ScrollTrigger.refresh());
+      refreshFrame = requestAnimationFrame(() => ScrollTrigger.refresh());
       return () => {
+        cancelAnimationFrame(refreshFrame);
         setProjectDeckPinned(false);
         setActiveProject(0);
       };
     });
-    return () => media.revert();
+    return () => {
+      cancelAnimationFrame(refreshFrame);
+      media.revert();
+    };
   }, [projects.length]);
 
   return (
