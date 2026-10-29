@@ -1,19 +1,12 @@
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Github, Linkedin, Mail } from 'lucide-react';
-import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { linkedinProfileUrl, useSiteSettings } from '@/hooks/useSiteSettings';
 
 const Footer = () => {
   const { settings } = useSiteSettings();
 
   return (
-    <motion.footer
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-      viewport={{ once: true }}
-      className="border-t border-border py-8"
-    >
+    <footer className="border-t border-border py-8">
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-center md:text-left">
@@ -41,7 +34,7 @@ const Footer = () => {
               <Github size={20} />
             </a>
             <a
-              href={settings.linkedin_url}
+              href={linkedinProfileUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn profile"
@@ -59,7 +52,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </motion.footer>
+    </footer>
   );
 };
 

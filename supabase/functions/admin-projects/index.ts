@@ -163,7 +163,8 @@ Deno.serve(async (req) => {
         if (!title || !description) return fail("Title and description are required", 400);
         const live_url = str(p.live_url, 500);
         const github_url = str(p.github_url, 500);
-        if (!isSafeUrl(live_url) || !isSafeUrl(github_url)) return fail("Links must start with http:// or https://", 400);
+        const video_url = str(p.video_url, 1500);
+        if (!isSafeUrl(live_url) || !isSafeUrl(github_url) || !isSafeUrl(video_url)) return fail("Links must start with http:// or https://", 400);
         const slug = (str(p.slug, 200) || title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
         if (!slug) return fail("Invalid slug", 400);
 
@@ -172,6 +173,7 @@ Deno.serve(async (req) => {
           detailed_description: str(p.detailed_description, 20000) || null,
           live_url: live_url || null,
           github_url: github_url || null,
+          video_url: video_url || null,
           tech_stack: strArr(p.tech_stack, 40, 60),
           images: strArr(p.images, 30, 1000).filter(isSafeUrl),
           sort_order: int(p.sort_order, -100000, 100000, 0),

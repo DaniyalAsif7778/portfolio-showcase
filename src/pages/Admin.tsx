@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, Plus, X, Loader2, Pencil, Trash2, ArrowLeft, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { adminCall, adminLogin, adminUpload, clearAdminToken, getAdminToken } from '@/lib/adminApi';
@@ -19,6 +19,7 @@ type Project = {
   detailed_description: string | null;
   live_url: string | null;
   github_url: string | null;
+  video_url: string | null;
   tech_stack: string[] | null;
   images: string[] | null;
   sort_order: number;
@@ -31,6 +32,7 @@ const emptyForm = {
   detailedDescription: '',
   liveUrl: '',
   githubUrl: '',
+  videoUrl: '',
   techStack: [] as string[],
   existingImages: [] as string[],
   sortOrder: 0,
@@ -55,7 +57,7 @@ const Admin = () => {
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     setLoadingList(true);
     const { data, error } = await supabase
       .from('projects')
@@ -65,11 +67,11 @@ const Admin = () => {
     if (error) toast({ title: 'Error', description: 'Could not load projects.', variant: 'destructive' });
     else setProjects((data || []) as Project[]);
     setLoadingList(false);
-  };
+  }, [toast]);
 
   useEffect(() => {
-    if (authenticated) fetchProjects();
-  }, [authenticated]);
+    if (authenticated) void fetchProjects();
+  }, [authenticated, fetchProjects]);
 
   const callAdmin = async (body: Record<string, unknown>) => {
     try {
@@ -93,8 +95,8 @@ const Admin = () => {
     try {
       await adminLogin(username.trim(), password);
       setAuthenticated(true);
-    } catch (err: any) {
-      toast({ title: 'Access Denied', description: err.message || 'Invalid credentials', variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: 'Access Denied', description: err instanceof Error ? err.message : 'Invalid credentials', variant: 'destructive' });
     } finally {
       setPassword('');
       setLoggingIn(false);
@@ -122,6 +124,7 @@ const Admin = () => {
       detailedDescription: p.detailed_description || '',
       liveUrl: p.live_url || '',
       githubUrl: p.github_url || '',
+      videoUrl: p.video_url || '',
       techStack: p.tech_stack || [],
       existingImages: p.images || [],
       sortOrder: p.sort_order ?? 0,
@@ -138,8 +141,8 @@ const Admin = () => {
       await callAdmin({ action: 'project_delete', id: p.id });
       toast({ title: 'Project deleted' });
       fetchProjects();
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Could not delete project.', variant: 'destructive' });
     }
   };
 
@@ -205,6 +208,7 @@ const Admin = () => {
         detailed_description: form.detailedDescription || null,
         live_url: form.liveUrl || null,
         github_url: form.githubUrl || null,
+        video_url: form.videoUrl || null,
         tech_stack: form.techStack,
         images: imageUrls,
         sort_order: Number(form.sortOrder) || 0,
@@ -221,8 +225,8 @@ const Admin = () => {
       resetForm();
       setView('list');
       fetchProjects();
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } catch (error: unknown) {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Could not save project.', variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -560,6 +564,17 @@ const Admin = () => {
                 value={form.githubUrl}
                 onChange={(e) => setForm({ ...form, githubUrl: e.target.value })}
               />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Scroll-scrub video URL (optional)</label>
+              <Input
+                type="url"
+                placeholder="https://cdn.example.com/project-demo.mp4"
+                value={form.videoUrl}
+                onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">Use a direct MP4 or WebM video link. The project detail page will scrub through it as visitors scroll.</p>
             </div>
 
             <div className="space-y-2">

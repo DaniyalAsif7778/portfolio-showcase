@@ -6,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { adminCall, adminUpload } from '@/lib/adminApi';
 import { useSiteSettings, SiteSettings } from '@/hooks/useSiteSettings';
-import fallbackImage from '@/assets/daniyal-photo.png.asset.json';
 
 const AdminHome = () => {
   const { settings, loading } = useSiteSettings();
@@ -28,8 +27,8 @@ const AdminHome = () => {
       const url = await adminUpload(file);
       setForm((f) => ({ ...f, profile_image: url }));
       toast({ title: 'Photo uploaded', description: 'Click Save to publish it.' });
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Could not upload photo.', variant: 'destructive' });
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -42,8 +41,8 @@ const AdminHome = () => {
     try {
       await adminCall({ action: 'settings_update', settings: form });
       toast({ title: 'Homepage updated' });
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Could not save homepage settings.', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -61,7 +60,7 @@ const AdminHome = () => {
     <form onSubmit={save} className="glass-card p-6 grid gap-5 sm:grid-cols-2">
       <div className="sm:col-span-2 flex items-center gap-5">
         <img
-          src={form.profile_image || fallbackImage.url}
+          src={form.profile_image || '/daniyal-profile.png'}
           alt="Profile preview"
           className="w-24 h-24 rounded-full object-cover border-4 border-primary/30"
         />

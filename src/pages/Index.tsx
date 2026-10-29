@@ -1,196 +1,210 @@
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { ArrowDown, Download, Github, Linkedin } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import SkillCircle from '@/components/SkillCircle';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowDown, ArrowUpRight, Github, Linkedin, Mail, MapPin } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { CustomEase } from 'gsap/CustomEase';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { gsap } from 'gsap';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import profileAsset from '@/assets/daniyal-photo.png.asset.json';
+import { defaultAbout, linkedinProfileUrl, useSiteSettings } from '@/hooks/useSiteSettings';
 import { useSkills } from '@/hooks/useSkills';
-import { useSiteSettings } from '@/hooks/useSiteSettings';
+import { supabase } from '@/integrations/supabase/client';
+
+type Project = {
+  title: string;
+  description: string;
+  tech_stack: string[] | null;
+  github_url: string | null;
+  live_url: string | null;
+  slug: string;
+  images: string[] | null;
+};
+
+const easing = 'M0,0 C0.16,1 0.3,1 1,1';
 
 const Index = () => {
-  const { skills: all } = useSkills();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const pageRef = useRef<HTMLDivElement>(null);
+  const projectsSectionRef = useRef<HTMLElement>(null);
+  const projectsPinRef = useRef<HTMLDivElement>(null);
+  const projectsViewportRef = useRef<HTMLDivElement>(null);
+  const projectsTrackRef = useRef<HTMLDivElement>(null);
   const { settings } = useSiteSettings();
-  const featured = all.filter((s) => s.featured);
-  const skills = (featured.length ? featured : all).slice(0, 4);
-  const handleDownloadCV = () => {
-    const link = document.createElement('a');
-    link.href = '/Daniyal_Asif_CV.pdf';
-    link.download = 'Daniyal_Asif_CV.pdf';
-    link.click();
-  };
+  const { skills } = useSkills();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [activeProject, setActiveProject] = useState(0);
+  const [projectDeckPinned, setProjectDeckPinned] = useState(false);
+  const about = { ...defaultAbout, ...settings.about };
+  const skillGroups = Array.from(new Set(skills.map((skill) => skill.category)));
+
+  useEffect(() => {
+    if (!location.hash) return;
+    const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    if (!target) return;
+    requestAnimationFrame(() => target.scrollIntoView({ block: 'start' }));
+  }, [location.hash]);
+
+  useEffect(() => {
+    let active = true;
+    supabase.from('projects').select('title, description, tech_stack, github_url, live_url, slug, images').order('sort_order').order('created_at', { ascending: false })
+      .then(({ data }) => { if (active) setProjects((data as Project[]) || []); });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    gsap.registerPlugin(CustomEase, ScrollTrigger);
+    CustomEase.create('editorial', easing);
+    const context = gsap.context(() => {
+      const targets = gsap.utils.toArray<HTMLElement>('.home-reveal');
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        gsap.set(targets, { opacity: 1, y: 0, clearProps: 'visibility' });
+        return;
+      }
+      targets.forEach((element, index) => {
+        gsap.fromTo(element, { autoAlpha: 0, y: 25 }, {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.85,
+          ease: 'editorial',
+          delay: element.classList.contains('hero-reveal') ? 0.1 + index * 0.05 : (index % 3) * 0.07,
+          scrollTrigger: { trigger: element, start: element.classList.contains('hero-reveal') ? 'top 95%' : 'top 88%', once: true },
+        });
+      });
+    }, pageRef);
+    return () => context.revert();
+  }, [skills.length]);
+
+  useEffect(() => {
+    if (projects.length < 2) return;
+    gsap.registerPlugin(ScrollTrigger);
+    const media = gsap.matchMedia();
+    media.add('(min-width: 768px) and (min-height: 560px) and (prefers-reduced-motion: no-preference)', () => {
+      const section = projectsSectionRef.current;
+      const pin = projectsPinRef.current;
+      const track = projectsTrackRef.current;
+      if (!section || !pin || !projectsViewportRef.current || !track) return;
+
+      setProjectDeckPinned(true);
+      const tween = gsap.to(track, {
+        xPercent: -100 * (projects.length - 1),
+        ease: 'none',
+        scrollTrigger: {
+          trigger: section,
+          pin,
+          start: 'top top',
+          end: () => `+=${Math.max(1, projects.length - 1) * window.innerHeight}`,
+          scrub: 1,
+          anticipatePin: 1,
+          pinSpacing: true,
+          invalidateOnRefresh: true,
+          snap: {
+            snapTo: (progress) => Math.round(progress * (projects.length - 1)) / (projects.length - 1),
+            duration: { min: 0.25, max: 0.45 },
+            delay: 0.12,
+            ease: 'power2.out',
+            inertia: false,
+          },
+          onUpdate: (self) => {
+            const next = Math.round(self.progress * (projects.length - 1));
+            setActiveProject((current) => current === next ? current : next);
+          },
+        },
+      });
+      requestAnimationFrame(() => ScrollTrigger.refresh());
+      return () => {
+        setProjectDeckPinned(false);
+        setActiveProject(0);
+      };
+    });
+    return () => media.revert();
+  }, [projects.length]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div ref={pageRef} className="min-h-screen bg-background">
       <Navbar />
-      
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        {/* Background Glow */}
-        <div className="hero-glow animate-pulse-glow" />
-        
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px]" />
-        
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            {/* Profile Image */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8 }}
-              className="mb-8"
-            >
-              <div className="relative w-40 h-40 md:w-48 md:h-48 mx-auto">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent blur-xl opacity-50 animate-pulse" />
-                <img
-                  src={settings.profile_image || profileAsset.url}
-                  alt={settings.name}
-                  className="relative w-full h-full rounded-full object-cover border-4 border-primary/30 shadow-2xl"
-                />
+      <main>
+        <section id="top" className="container hero-grid scroll-mt-24" aria-labelledby="hero-title">
+          <div className="hero-copy">
+            <p className="eyebrow hero-reveal mb-7 flex items-center gap-3"><span className="h-px w-8 bg-[var(--green)]" />MERN Stack Developer<span className="text-[var(--green)]">/</span>Rawalpindi, Pakistan</p>
+            <h1 id="hero-title" className="hero-title hero-reveal">Building clear, <em>considered</em> digital experiences.</h1>
+            <p className="hero-lede hero-reveal mt-7">{settings.intro}</p>
+            <div className="hero-reveal mt-9 flex flex-wrap items-center gap-3">
+              <a href="/#projects" onClick={(event) => { event.preventDefault(); navigate('/#projects'); document.getElementById('projects')?.scrollIntoView({ block: 'start', behavior: 'smooth' }); }} className="inline-flex items-center gap-3 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground hover:brightness-110">Explore my work <ArrowUpRight size={16} /></a>
+              <a href="/Daniyal_Asif_CV.pdf" download className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-5 py-3.5 text-sm font-semibold hover:border-[var(--blue)]">Download CV <ArrowDown size={15} /></a>
+            </div>
+            <div className="hero-reveal mt-8 flex items-center gap-5">
+              <a href={settings.github_url} target="_blank" rel="noreferrer" aria-label="GitHub profile" className="text-muted-foreground hover:text-foreground"><Github size={18} /></a>
+              <a href={linkedinProfileUrl} target="_blank" rel="noreferrer" aria-label="LinkedIn profile" className="text-muted-foreground hover:text-foreground"><Linkedin size={18} /></a>
+              <span className="h-px w-12 bg-border" /><span className="eyebrow">Available for select projects</span>
+            </div>
+          </div>
+          <div className="hero-art hero-reveal">
+              <div className="hero-portrait-frame"><img className="hero-portrait" src="/daniyal-profile.png" alt={`Portrait of ${settings.name}, MERN Stack Developer`} width="800" height="800" /></div>
+          </div>
+        </section>
+
+        <section id="skills" className="skills-stage scroll-mt-20" aria-labelledby="skills-title">
+          <div className="container skills-stage-inner">
+            <div className="skills-intro home-reveal"><p className="eyebrow text-white/70">01 / The toolkit</p><h2 id="skills-title" className="skills-title">Skills with a purpose.</h2><p className="mt-5 max-w-md text-base leading-7 text-white/75">A practical toolkit for designing, building, and shipping responsive web experiences.</p></div>
+            <div className="skills-groups">
+              {skillGroups.map((category, groupIndex) => (
+                <article className={`skill-group skill-group-${groupIndex % 4} home-reveal`} key={category}>
+                  <p className="eyebrow mb-5">{String(groupIndex + 1).padStart(2, '0')} / {category}</p>
+                  <ul>{skills.filter((skill) => skill.category === category).map((skill) => <li key={skill.id}>{skill.name}</li>)}</ul>
+                </article>
+              ))}
+            </div>
+            <p className="skills-footnote home-reveal">Curious by default. Always learning.</p>
+          </div>
+        </section>
+
+        <section id="projects" ref={projectsSectionRef} className="projects-section scroll-mt-20" aria-label="Project showcase">
+          <h2 className="sr-only">Featured projects</h2>
+          <div ref={projectsPinRef} className="projects-pin">
+            <div ref={projectsViewportRef} className="projects-viewport" role="region" aria-label="Selected projects">
+              {projects.length ? <div ref={projectsTrackRef} className="projects-track">
+                {projects.map((project, index) => <article key={project.slug} className={`project-slide project-slide-${index % 4}`} aria-label={`Project ${index + 1} of ${projects.length}: ${project.title}`} aria-hidden={projectDeckPinned && activeProject !== index}>
+                  <div className="project-slide-art">
+                    {project.images?.[0] ? <img src={project.images[0]} alt={`${project.title} interface preview`} loading={index === 0 ? 'eager' : 'lazy'} /> : <div className="project-art-placeholder" aria-hidden="true"><div className="mock-browser"><div className="mock-browser-bar"><i /><i /><i /><span>{project.slug}.app</span></div><div className="mock-browser-content"><b>{project.title}</b><div /><div /><div /><span /></div></div><span className="art-orbit art-orbit-a" /><span className="art-orbit art-orbit-b" /></div>}
+                    <span className="project-art-caption">PROJECT PREVIEW</span>
+                  </div>
+                  <div className="project-slide-copy">
+                    <span className="eyebrow project-slide-type">Featured project</span>
+                    <h2>{project.title}</h2>
+                    <p>{project.description}</p>
+                    <div className="project-slide-stack">{(project.tech_stack || []).map((tech) => <span key={tech}>{tech}</span>)}</div>
+                    <Link to={`/projects/${project.slug}`} tabIndex={projectDeckPinned && activeProject !== index ? -1 : 0} className="project-slide-link">Explore the project <ArrowUpRight size={18} /></Link>
+                  </div>
+                </article>)}
+              </div> : <div className="project-empty-state"><p>New work is taking shape.</p><span>Selected projects will appear here.</span></div>}
+            </div>
+          </div>
+        </section>
+
+        <section id="about" className="about-section scroll-mt-20" aria-labelledby="about-title">
+          <div className="container about-grid">
+            <div className="about-card home-reveal">
+              <div className="about-profile"><p className="eyebrow mb-3">03 / About</p><h2 id="about-title" className="section-heading">About Daniyal.</h2><div className="about-photo-wrap"><img src="/daniyal-profile.png" alt={`Portrait of ${settings.name}`} width="800" height="800" loading="lazy" /></div></div>
+              <div className="about-copy">
+              <h3>{about.whoTitle}</h3>
+              {about.paragraphs.filter(Boolean).map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+              <div className="about-facts"><div><MapPin size={16} /><span>{about.location}</span></div>{about.email && <div><Mail size={16} /><a href={`mailto:${about.email}`}>{about.email}</a></div>}</div>
+              {about.education.length > 0 && <div className="about-subsection"><p className="eyebrow">Education</p>{about.education.map((entry) => <div className="education-row" key={`${entry.title}-${entry.school}`}><div><strong>{entry.title}</strong><span>{entry.school}</span></div><time>{entry.period}</time></div>)}</div>}
+              {about.goals.filter(Boolean).length > 0 && <div className="about-languages"><p className="eyebrow">{about.goalsTitle}</p><ul className="about-goals">{about.goals.filter(Boolean).map((goal) => <li key={goal}>{goal}</li>)}</ul></div>}
+              {about.languages.filter(Boolean).length > 0 && <div className="about-languages"><p className="eyebrow">Languages</p><div>{about.languages.filter(Boolean).map((language) => <span key={language}>{language}</span>)}</div></div>}
               </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-            >
-              <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-                {settings.badge}
-              </span>
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-5xl md:text-7xl font-display font-bold mb-6"
-            >
-              Hi, I'm{' '}
-              <span className="gradient-text">{settings.name}</span>
-              <span className="block text-2xl md:text-3xl font-medium text-muted-foreground mt-4">
-                {settings.tagline}
-              </span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
-            >
-              {settings.intro}
-            </motion.p>
-
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12"
-            >
-              <Button variant="hero" onClick={handleDownloadCV}>
-                <Download size={20} />
-                Download CV
-              </Button>
-              <Button variant="heroOutline" asChild>
-                <a href={settings.github_url} target="_blank" rel="noopener noreferrer">
-                  <Github size={20} />
-                  GitHub Profile
-                </a>
-              </Button>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-              className="flex items-center justify-center gap-6"
-            >
-              <a
-                href={settings.github_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Daniyal Asif on GitHub"
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Github size={24} />
-              </a>
-              <a
-                href={settings.linkedin_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Daniyal Asif on LinkedIn"
-                className="text-muted-foreground hover:text-primary transition-colors"
-              >
-                <Linkedin size={24} />
-              </a>
-            </motion.div>
+            </div>
           </div>
-        </div>
+        </section>
 
-        {/* Scroll Indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="text-muted-foreground"
-          >
-            <ArrowDown size={24} />
-          </motion.div>
-        </motion.div>
-      </section>
-
-      {/* Skills Preview Section */}
-      <section className="py-24 relative">
-        <div className="container mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl md:text-5xl font-display font-bold mb-4">
-              <span className="gradient-text">Core Skills</span>
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Technologies I work with to build amazing web experiences
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-            {skills.map((skill, index) => (
-              <SkillCircle
-                key={skill.id}
-                name={skill.name}
-                percentage={skill.percentage}
-                color={skill.color}
-                delay={index * 0.1}
-              />
-            ))}
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            viewport={{ once: true }}
-            className="text-center mt-12"
-          >
-            <Button variant="outline" asChild>
-              <Link to="/skills">View All Skills</Link>
-            </Button>
-          </motion.div>
-        </div>
-      </section>
-
+        <section id="contact" className="contact-section scroll-mt-20" aria-labelledby="contact-title">
+          <div className="container py-24"><div className="contact-panel home-reveal">
+            <div><p className="eyebrow mb-4">04 / Start a conversation</p><h2 id="contact-title" className="contact-title">Have a good idea?<br />Let’s make it real.</h2><p className="mt-5 max-w-xl leading-7 text-muted-foreground">I’m open to thoughtful collaborations, frontend opportunities, and projects that make the web easier to use.</p></div>
+            <div className="contact-actions"><Link className="contact-email" to="/contact">Send a message <ArrowUpRight size={16} /></Link><a className="contact-social" href={`mailto:${about.email || 'daniyal.asifjdk7778@gmail.com'}`}><Mail size={17} />{about.email || 'Get in touch by email'}</a><a className="contact-social" href={linkedinProfileUrl} target="_blank" rel="noreferrer"><Linkedin size={17} />Connect on LinkedIn</a><Link className="contact-social" to="/github"><Github size={17} />View GitHub profile</Link></div>
+          </div></div>
+        </section>
+      </main>
       <Footer />
     </div>
   );

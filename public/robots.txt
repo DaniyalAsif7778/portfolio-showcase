@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /admin-panel
-
-Sitemap: https://daniyal-portfolio.lovable.app/sitemap.xml
+Sitemap: https://portfolio-showcase-rho.vercel.app/sitemap.xml

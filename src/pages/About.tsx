@@ -4,7 +4,6 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SectionHeader from '@/components/SectionHeader';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import profileAsset from '@/assets/daniyal-photo.png.asset.json';
 
 const About = () => {
   const { settings, loading } = useSiteSettings();
@@ -33,13 +32,8 @@ const About = () => {
               <div className="glass-card p-8">
                 {/* Profile Image */}
                 <div className="flex justify-center mb-8">
-                  <div className="relative w-48 h-48">
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-accent blur-xl opacity-40 animate-pulse" />
-                    <img
-                      src={settings.profile_image || profileAsset.url}
-                      alt={settings.name}
-                      className="relative w-full h-full rounded-full object-cover border-4 border-primary/30 shadow-2xl"
-                    />
+                  <div className="relative grid h-40 w-40 place-items-center rounded-full border border-[#c9d9d9] bg-[#e8f0f4] text-4xl font-semibold tracking-[-.08em] text-[var(--blue)] shadow-[10px_10px_0_#d7e3e9]">
+                    <img src="/daniyal-profile.png" alt={settings.name} className="absolute inset-0 h-full w-full rounded-full object-cover" />
                   </div>
                 </div>
                 <h3 className="text-2xl font-display font-semibold mb-6 gradient-text">

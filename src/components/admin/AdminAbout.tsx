@@ -25,8 +25,8 @@ const AdminAbout = () => {
       await adminCall({ action: 'settings_update', settings: { ...settings, about: form } });
       await reload();
       toast({ title: 'About page updated' });
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } catch (err: unknown) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Could not save About settings.', variant: 'destructive' });
     } finally {
       setSaving(false);
     }

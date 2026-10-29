@@ -34,28 +34,29 @@ export type SiteSettings = {
   about: AboutContent;
 };
 
+export const linkedinProfileUrl = 'https://www.linkedin.com/in/daniyal-asif-25ba10332/';
+
 export const defaultAbout: AboutContent = {
   heading: 'About Me',
   subtitle: 'Get to know me better',
   whoTitle: 'Who I Am',
   paragraphs: [
-    "I'm a results-oriented Frontend Developer from Rawalpindi, Pakistan, specializing in building responsive, accessible, and user-centric web applications with React and modern frontend technologies.",
-    "With a proven ability to design and implement real-world projects with clean, maintainable code and strong problem-solving skills, I'm eager to leverage my React expertise to contribute to impactful user interfaces and accelerate professional growth.",
+    'I’m a MERN Stack Developer from Rawalpindi, Pakistan, with hands-on project experience building full stack web applications using MongoDB, Express.js, React.js, and Node.js.',
+    'I build reusable React components, integrate REST APIs, manage application state, and deploy frontend and backend applications. I’m interested in maintainable architecture, scalable backend design, and AI powered development.',
   ],
   location: 'Rawalpindi, Punjab, Pakistan',
   email: 'daniyal.asifjdk7778@gmail.com',
   phone: '0312 1982877',
   educationTitle: 'Education',
   education: [
-    { title: 'Intermediate Computer Science (ICS)', school: 'Superior College Pindsultani', period: 'Jan 2023 - Jan 2025' },
-    { title: 'Matric in Computer Science', school: 'SPIRIT SCHOOL Basal', period: 'Jan 2021 - Jan 2023' },
+    { title: 'Intermediate Computer Science (ICS)', school: 'Superior College Pindsultani', period: 'Jan 2023 to Jan 2027' },
+    { title: 'Matric in Computer Science', school: 'SPIRIT SCHOOL Basal', period: 'Jan 2021 to Jan 2023' },
   ],
-  goalsTitle: 'My Goals',
+  goalsTitle: 'Currently Exploring',
   goals: [
-    'Master advanced React patterns and state management',
-    'Contribute to open-source projects and communities',
-    'Build impactful web applications that solve real problems',
-    'Grow as a full-stack developer over time',
+    'Agentic AI and AI agents',
+    'Tool calling and Retrieval-Augmented Generation (RAG)',
+    'System design and scalable backend architecture',
   ],
   languagesTitle: 'Languages',
   languages: ['Urdu (Native)', 'English (Fluent)'],
@@ -63,13 +64,13 @@ export const defaultAbout: AboutContent = {
 
 export const defaultSettings: SiteSettings = {
   profile_image: null,
-  badge: 'Frontend Developer',
+  badge: 'MERN Stack Developer',
   name: 'Daniyal Asif',
-  tagline: 'Frontend Developer for React & Modern Web Apps',
+  tagline: 'MERN Stack Developer building modern web applications',
   intro:
-    'Results-oriented Frontend Developer specializing in building responsive, accessible, and user-centric web applications with React and modern frontend technologies.',
+    'MERN Stack Developer building responsive web applications with React, Node.js, Express, and MongoDB. I care about maintainable code, useful interfaces, and reliable API integrations.',
   github_url: 'https://github.com/DaniyalAsif7778',
-  linkedin_url: 'https://linkedin.com/in/DaniyalAsif7778',
+  linkedin_url: linkedinProfileUrl,
   about: defaultAbout,
 };
 
@@ -78,13 +79,37 @@ export const useSiteSettings = () => {
   const [loading, setLoading] = useState(true);
 
   const reload = async () => {
-    const { data } = await supabase.from('site_settings' as any).select('*').eq('id', 1).maybeSingle();
+    const { data } = await supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
     if (data) {
       const row = data as unknown as Record<string, unknown>;
+      const savedIntro = typeof row.intro === 'string' ? row.intro.trim() : '';
+      // Replace the old generic bio still present in existing site_settings rows.
+      const intro = /being passionate about writing code/i.test(savedIntro)
+        ? defaultSettings.intro
+        : (savedIntro || defaultSettings.intro);
+      const savedAbout = (row.about_content as Partial<AboutContent>) || {};
+      const about = { ...defaultAbout, ...savedAbout };
+      if (about.paragraphs.some((paragraph) => /cutting-edge, user-friendly, and scalable/i.test(paragraph))) {
+        about.paragraphs = defaultAbout.paragraphs;
+      }
+      about.education = about.education.map((entry) => {
+        if (/intermediate.*computer science|\bics\b/i.test(entry.title) && /2025/.test(entry.period)) {
+          return { ...entry, period: defaultAbout.education[0].period };
+        }
+        return { ...entry, period: entry.period.replace(/\s*[–—-]\s*/g, ' to ') };
+      });
+      about.languages = about.languages.map((language) =>
+        /^english\s*\(intermediate\)$/i.test(language) ? 'English (Fluent)' : language,
+      );
+      if (about.goals.some((goal) => /master advanced react patterns|contribute to open-source projects/i.test(goal))) {
+        about.goalsTitle = defaultAbout.goalsTitle;
+        about.goals = defaultAbout.goals;
+      }
       setSettings({
         ...defaultSettings,
         ...(row as unknown as SiteSettings),
-        about: { ...defaultAbout, ...((row.about_content as Partial<AboutContent>) || {}) },
+        intro,
+        about,
       });
     }
     setLoading(false);

@@ -15,7 +15,7 @@ const Privacy = () => (
           <div>
             <h2 className="text-xl font-display font-semibold text-foreground mb-3">1. Who this policy covers</h2>
             <p>
-              This is the personal portfolio website of Daniyal Asif, a frontend developer based in Rawalpindi,
+              This is the personal portfolio website of Daniyal Asif, a MERN Stack Developer based in Rawalpindi,
               Pakistan. This policy explains what information this website collects, why, and what happens to it.
               If you have questions, contact me at daniyal.asifjdk7778@gmail.com.
             </p>

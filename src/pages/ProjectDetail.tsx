@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Skeleton } from '@/components/ui/skeleton';
+import ProjectVideoScrub from '@/components/ProjectVideoScrub';
 
 interface Project {
   id: string;
@@ -16,6 +17,7 @@ interface Project {
   tech_stack: string[];
   github_url: string | null;
   live_url: string | null;
+  video_url: string | null;
   images: string[];
   created_at: string;
 }
@@ -187,6 +189,8 @@ const ProjectDetail = () => {
               </motion.div>
             )}
           </div>
+
+          {project.video_url && <ProjectVideoScrub src={project.video_url} poster={project.images?.[0]} title={project.title} />}
 
           {/* Details */}
           <motion.section

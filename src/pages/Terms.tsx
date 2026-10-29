@@ -15,7 +15,7 @@ const Terms = () => (
           <div>
             <h2 className="text-xl font-display font-semibold text-foreground mb-3">1. What this website is</h2>
             <p>
-              This website presents the work, skills and contact details of Daniyal Asif, a frontend developer. By
+              This website presents the work, skills and contact details of Daniyal Asif, a MERN Stack Developer. By
               using this website you agree to these terms. If you do not agree, please stop using the site.
             </p>
           </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Loader2, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -27,17 +27,17 @@ const AdminSkills = () => {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('skills' as any).select('*').order('sort_order');
+    const { data, error } = await supabase.from('skills').select('*').order('sort_order');
     if (error) toast({ title: 'Error', description: 'Could not load skills.', variant: 'destructive' });
-    else setSkills((data || []) as unknown as Skill[]);
+    else setSkills((data || []) as Skill[]);
     setLoading(false);
-  };
+  }, [toast]);
 
   useEffect(() => {
-    load();
-  }, []);
+    void load();
+  }, [load]);
 
   const startNew = () => {
     setEditingId(null);
@@ -58,9 +58,9 @@ const AdminSkills = () => {
       await adminCall(editingId ? { action: 'skill_update', id: editingId, skill: form } : { action: 'skill_create', skill: form });
       toast({ title: editingId ? 'Skill updated' : 'Skill added' });
       setOpen(false);
-      load();
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      void load();
+    } catch (err: unknown) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Could not save skill.', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -71,9 +71,9 @@ const AdminSkills = () => {
     try {
       await adminCall({ action: 'skill_delete', id: s.id });
       toast({ title: 'Skill deleted' });
-      load();
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      void load();
+    } catch (err: unknown) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Could not delete skill.', variant: 'destructive' });
     }
   };
 
