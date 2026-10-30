@@ -57,7 +57,7 @@ The resume PDF is served from `public/Daniyal_Asif_CV.pdf`. Set `VITE_SITE_URL` 
 
 ## Search engine setup
 
-Page titles, descriptions, canonical links, social sharing tags, and structured data are managed by `src/components/SEO.tsx`. The production build creates `dist/robots.txt` and `dist/sitemap.xml`; it reads public project slugs from Supabase so project detail URLs are included automatically. The admin route is marked `noindex` and excluded from the sitemap. Crawlers can fetch it to read that `noindex` directive.
+Page titles, descriptions, canonical links, social sharing tags, and structured data are managed by `src/components/SEO.tsx`. The production build creates `dist/robots.txt` and `dist/sitemap.xml`; it reads public project slugs from Supabase so project detail URLs are included automatically. The admin route has a `noindex` response header and client meta tag and is excluded from the sitemap.
 
 The current production URL is `https://daniyal-porfolio-three.vercel.app`. Set `VITE_SITE_URL` to that URL in the deployment environment if it changes. After deploying, confirm that the homepage, `/robots.txt`, `/sitemap.xml`, and a project detail URL all load over HTTPS before submitting the sitemap to Google Search Console.
 
