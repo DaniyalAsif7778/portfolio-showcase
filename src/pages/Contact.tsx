@@ -9,7 +9,7 @@ import SectionHeader from '@/components/SectionHeader';
 import SEO from '@/components/SEO';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 
-// EmailJS configuration placeholders - Replace with your actual IDs
+// EmailJS public configuration used by the contact form.
 const EMAILJS_SERVICE_ID = 'service_4pjt1o8';
 const EMAILJS_TEMPLATE_ID = 'template_j070jzr';
 const EMAILJS_PUBLIC_KEY = 'd7-qXzSLUnT7xVTbY';
@@ -23,6 +23,7 @@ const Contact = () => {
     message: '',
   });
   const [attachment, setAttachment] = useState<File | null>(null);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
@@ -31,15 +32,17 @@ const Contact = () => {
     if (file) {
       // Limit file size to 5MB
       if (file.size > 5 * 1024 * 1024) {
-        alert('File size should be less than 5MB');
+        setAttachmentError('File size should be less than 5MB.');
         return;
       }
+      setAttachmentError(null);
       setAttachment(file);
     }
   };
 
   const removeAttachment = () => {
     setAttachment(null);
+    setAttachmentError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -79,6 +82,7 @@ const Contact = () => {
       setStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' });
       setAttachment(null);
+      setAttachmentError(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -242,6 +246,7 @@ const Contact = () => {
                       </motion.div>
                     )}
                   </div>
+                  {attachmentError && <p role="alert" className="mt-2 text-sm text-destructive">{attachmentError}</p>}
                 </div>
 
                 {/* Submit Button */}

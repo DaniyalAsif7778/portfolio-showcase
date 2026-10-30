@@ -83,14 +83,30 @@ export const useSiteSettings = () => {
 
   const reload = async () => {
     setLoading(true);
-    const { data, error: queryError } = await supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
-    if (queryError) setError(queryError.message);
-    else if (!data) setError('No site settings row exists in Supabase.');
-    else setError(null);
-    if (data) {
+    setError(null);
+    try {
+      const { data, error: queryError } = await supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
+      if (queryError) {
+        setError(queryError.message);
+        return;
+      }
+      if (!data) {
+        setError('No site settings row exists in Supabase.');
+        return;
+      }
+
       const row = data as unknown as Record<string, unknown>;
       const savedAbout = (row.about_content as Partial<AboutContent>) || {};
-      const about = { ...defaultAbout, ...savedAbout };
+      const about = {
+        ...defaultAbout,
+        ...savedAbout,
+        paragraphs: Array.isArray(savedAbout.paragraphs) ? savedAbout.paragraphs.filter((item): item is string => typeof item === 'string') : defaultAbout.paragraphs,
+        education: Array.isArray(savedAbout.education)
+          ? savedAbout.education.filter((item): item is EducationEntry => Boolean(item && typeof item.title === 'string' && typeof item.school === 'string' && typeof item.period === 'string'))
+          : defaultAbout.education,
+        goals: Array.isArray(savedAbout.goals) ? savedAbout.goals.filter((item): item is string => typeof item === 'string') : defaultAbout.goals,
+        languages: Array.isArray(savedAbout.languages) ? savedAbout.languages.filter((item): item is string => typeof item === 'string') : defaultAbout.languages,
+      };
       setSettings({
         ...defaultSettings,
         ...(row as unknown as SiteSettings),
@@ -98,8 +114,11 @@ export const useSiteSettings = () => {
         tagline: typeof row.tagline === 'string' && row.tagline.trim() ? row.tagline : defaultSettings.tagline,
         about,
       });
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Could not load site settings.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {

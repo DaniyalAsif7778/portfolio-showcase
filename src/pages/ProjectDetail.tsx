@@ -28,20 +28,38 @@ const ProjectDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let active = true;
     const fetchProject = async () => {
-      if (!slug) return;
-      const { data } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('slug', slug)
-        .single();
-      if (!active) return;
-      setProject(data ? withCurrentProjectContent(data as Project) : null);
-      setLoading(false);
+      if (!slug) {
+        setProject(null);
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      setLoadError(null);
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('slug', slug)
+          .single();
+        if (!active) return;
+        if (error && error.code !== 'PGRST116') throw error;
+        setProject(data ? withCurrentProjectContent(data as Project) : null);
+        setSelectedImage(0);
+      } catch (error) {
+        if (!active) return;
+        console.error('Unable to load project details:', error);
+        setProject(null);
+        setLoadError('Could not load this project. Check your connection and try again.');
+      } finally {
+        if (active) setLoading(false);
+      }
     };
     const projectUpdates = slug ? supabase
       .channel(`project-detail-${slug}`)
@@ -54,7 +72,7 @@ const ProjectDetail = () => {
       active = false;
       if (projectUpdates) void supabase.removeChannel(projectUpdates);
     };
-  }, [slug]);
+  }, [slug, retryCount]);
 
   if (loading) {
     return (
@@ -75,10 +93,17 @@ const ProjectDetail = () => {
         <SEO title="Project not found" description="This portfolio project could not be found." path={`/projects/${slug || ''}`} noIndex />
         <Navbar />
         <main className="pt-24 pb-16 container mx-auto px-6 text-center">
-          <h2 className="text-2xl font-display font-bold mb-4">Project not found</h2>
-          <Link to="/projects" className="text-primary hover:underline">
-            ← Back to projects
-          </Link>
+          <h2 className="text-2xl font-display font-bold mb-4">{loadError ? 'Project unavailable' : 'Project not found'}</h2>
+          {loadError ? (
+            <div className="flex flex-col items-center gap-4">
+              <p role="alert" className="text-muted-foreground">{loadError}</p>
+              <button type="button" onClick={() => setRetryCount((count) => count + 1)} className="text-primary hover:underline">Retry</button>
+            </div>
+          ) : (
+            <Link to="/projects" className="text-primary hover:underline">
+              ← Back to projects
+            </Link>
+          )}
         </main>
         <Footer />
       </div>
