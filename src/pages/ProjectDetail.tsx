@@ -96,7 +96,7 @@ const ProjectDetail = () => {
           '@type': 'CreativeWork',
           name: project.title,
           description: project.description,
-          url: `${import.meta.env.VITE_SITE_URL || 'https://portfolio-showcase-rho.vercel.app'}/projects/${project.slug}`,
+          url: `${import.meta.env.VITE_SITE_URL || 'https://daniyal-porfolio-three.vercel.app'}/projects/${project.slug}`,
           image: project.images?.[0],
           author: { '@type': 'Person', name: 'Daniyal Asif' },
           keywords: project.tech_stack?.join(', '),

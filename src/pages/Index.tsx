@@ -186,7 +186,7 @@ const Index = () => {
           name: 'Daniyal Asif',
           jobTitle: 'MERN Stack Developer',
           image: '/daniyal-profile.png',
-          url: `${import.meta.env.VITE_SITE_URL || 'https://portfolio-showcase-rho.vercel.app'}/`,
+          url: `${import.meta.env.VITE_SITE_URL || 'https://daniyal-porfolio-three.vercel.app'}/`,
           sameAs: ['https://github.com/DaniyalAsif7778', 'https://www.linkedin.com/in/daniyal-asif-25ba10332/'],
           address: { '@type': 'PostalAddress', addressLocality: 'Rawalpindi', addressCountry: 'PK' },
           knowsAbout: ['MongoDB', 'Express.js', 'React', 'Node.js', 'TypeScript', 'REST APIs', 'Responsive web design'],

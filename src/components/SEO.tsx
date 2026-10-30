@@ -11,7 +11,7 @@ type SEOProps = {
 
 const SITE_NAME = 'Daniyal Asif | MERN Stack Developer';
 const PROFILE_IMAGE = '/daniyal-profile.png';
-const DEFAULT_SITE_URL = 'https://portfolio-showcase-rho.vercel.app';
+const DEFAULT_SITE_URL = 'https://daniyal-porfolio-three.vercel.app';
 
 function upsertMeta(selector: string, attribute: 'name' | 'property', key: string, content: string) {
   let element = document.head.querySelector<HTMLMetaElement>(selector);

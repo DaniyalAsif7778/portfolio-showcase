@@ -3,7 +3,7 @@ import path from 'node:path';
 import { loadEnv } from 'vite';
 
 const env = { ...loadEnv('production', process.cwd(), ''), ...process.env };
-const configuredSiteUrl = (env.VITE_SITE_URL || 'https://portfolio-showcase-rho.vercel.app').trim();
+const configuredSiteUrl = (env.VITE_SITE_URL || 'https://daniyal-porfolio-three.vercel.app').trim();
 const site = new URL(configuredSiteUrl);
 if (site.protocol !== 'https:' && site.hostname !== 'localhost') {
   throw new Error('VITE_SITE_URL must use HTTPS for the public portfolio domain.');
@@ -47,7 +47,7 @@ const robots = `User-agent: *\nAllow: /\nSitemap: ${base}/sitemap.xml\n`;
 await mkdir(outDir, { recursive: true });
 const htmlPath = path.join(outDir, 'index.html');
 const html = await readFile(htmlPath, 'utf8');
-await writeFile(htmlPath, html.replaceAll('https://portfolio-showcase-rho.vercel.app', base), 'utf8');
+await writeFile(htmlPath, html.replaceAll('https://daniyal-porfolio-three.vercel.app', base), 'utf8');
 await Promise.all([
   writeFile(path.join(outDir, 'sitemap.xml'), sitemap, 'utf8'),
   writeFile(path.join(outDir, 'robots.txt'), robots, 'utf8'),
