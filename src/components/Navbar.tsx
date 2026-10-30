@@ -2,6 +2,7 @@ import { useState, type MouseEvent } from 'react';
 import { Link, NavLink as RouterNavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Moon, Sun, X } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const navItems = [
   { path: '/#top', label: 'Home', section: true },
@@ -14,6 +15,7 @@ const navItems = [
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { settings } = useSiteSettings();
   const { theme, setTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
@@ -28,9 +30,9 @@ const Navbar = () => {
   return (
     <nav className="site-nav fixed inset-x-0 top-0 z-50">
       <div className="container flex min-h-[76px] items-center justify-between">
-        <Link to="/#top" aria-label="Daniyal Asif, home" onClick={(event) => handleSectionLink(event, '/#top')} className="flex items-center gap-3">
+        <Link to="/#top" aria-label={`${settings.name}, home`} onClick={(event) => handleSectionLink(event, '/#top')} className="flex items-center gap-3">
           <span className="site-mark">DA</span>
-          <span><span className="block font-semibold leading-tight tracking-tight">Daniyal Asif</span><span className="eyebrow mt-1 block text-[9px]">MERN stack developer</span></span>
+          <span><span className="block font-semibold leading-tight tracking-tight">{settings.name}</span><span className="eyebrow mt-1 block text-[9px]">{settings.badge}</span></span>
         </Link>
         <div className="hidden items-center gap-7 md:flex">
           {navItems.map((item) => item.section ? <Link key={item.path} to={item.path} onClick={(event) => handleSectionLink(event, item.path)} className="nav-link text-[13px] font-medium">{item.label}</Link> : <RouterNavLink key={item.path} to={item.path} className={({ isActive }) => `nav-link text-[13px] font-medium ${isActive ? 'active' : ''}`}>{item.label}</RouterNavLink>)}

@@ -31,6 +31,7 @@ export type SiteSettings = {
   intro: string;
   github_url: string;
   linkedin_url: string;
+  linkedin_banner_url: string | null;
   about: AboutContent;
 };
 
@@ -45,7 +46,7 @@ export const defaultAbout: AboutContent = {
     'I build reusable React components, integrate REST APIs, manage application state, and deploy frontend and backend applications. I’m interested in maintainable architecture, scalable backend design, and AI powered development.',
   ],
   location: 'Rawalpindi, Punjab, Pakistan',
-  email: 'daniyal.asifjdk7778@gmail.com',
+  email: 'danyalasif.dev@gmail.com',
   phone: '0312 1982877',
   educationTitle: 'Education',
   education: [
@@ -66,49 +67,35 @@ export const defaultSettings: SiteSettings = {
   profile_image: null,
   badge: 'MERN Stack Developer',
   name: 'Daniyal Asif',
-  tagline: 'MERN Stack Developer building modern web applications',
+  tagline: 'Full stack MERN developer building practical web applications.',
   intro:
     'MERN Stack Developer building responsive web applications with React, Node.js, Express, and MongoDB. I care about maintainable code, useful interfaces, and reliable API integrations.',
   github_url: 'https://github.com/DaniyalAsif7778',
   linkedin_url: linkedinProfileUrl,
+  linkedin_banner_url: null,
   about: defaultAbout,
 };
 
 export const useSiteSettings = () => {
   const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const reload = async () => {
-    const { data } = await supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
+    setLoading(true);
+    const { data, error: queryError } = await supabase.from('site_settings').select('*').eq('id', 1).maybeSingle();
+    if (queryError) setError(queryError.message);
+    else if (!data) setError('No site settings row exists in Supabase.');
+    else setError(null);
     if (data) {
       const row = data as unknown as Record<string, unknown>;
-      const savedIntro = typeof row.intro === 'string' ? row.intro.trim() : '';
-      // Replace the old generic bio still present in existing site_settings rows.
-      const intro = /being passionate about writing code/i.test(savedIntro)
-        ? defaultSettings.intro
-        : (savedIntro || defaultSettings.intro);
       const savedAbout = (row.about_content as Partial<AboutContent>) || {};
       const about = { ...defaultAbout, ...savedAbout };
-      if (about.paragraphs.some((paragraph) => /cutting-edge, user-friendly, and scalable/i.test(paragraph))) {
-        about.paragraphs = defaultAbout.paragraphs;
-      }
-      about.education = about.education.map((entry) => {
-        if (/intermediate.*computer science|\bics\b/i.test(entry.title) && /2025/.test(entry.period)) {
-          return { ...entry, period: defaultAbout.education[0].period };
-        }
-        return { ...entry, period: entry.period.replace(/\s*[–—-]\s*/g, ' to ') };
-      });
-      about.languages = about.languages.map((language) =>
-        /^english\s*\(intermediate\)$/i.test(language) ? 'English (Fluent)' : language,
-      );
-      if (about.goals.some((goal) => /master advanced react patterns|contribute to open-source projects/i.test(goal))) {
-        about.goalsTitle = defaultAbout.goalsTitle;
-        about.goals = defaultAbout.goals;
-      }
       setSettings({
         ...defaultSettings,
         ...(row as unknown as SiteSettings),
-        intro,
+        intro: typeof row.intro === 'string' && row.intro.trim() ? row.intro : defaultSettings.intro,
+        tagline: typeof row.tagline === 'string' && row.tagline.trim() ? row.tagline : defaultSettings.tagline,
         about,
       });
     }
@@ -119,5 +106,5 @@ export const useSiteSettings = () => {
     reload();
   }, []);
 
-  return { settings, loading, reload };
+  return { settings, loading, reload, error };
 };

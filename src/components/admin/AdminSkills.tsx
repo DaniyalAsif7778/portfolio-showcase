@@ -103,17 +103,6 @@ const AdminSkills = () => {
             <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
           </label>
           <label className="space-y-1 text-sm">
-            Percentage: {form.percentage}%
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={form.percentage}
-              onChange={(e) => setForm({ ...form, percentage: Number(e.target.value) })}
-              className="w-full accent-primary"
-            />
-          </label>
-          <label className="space-y-1 text-sm">
             Color (e.g. hsl(174 72% 56%) or #22d3ee)
             <Input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} />
           </label>
@@ -141,9 +130,7 @@ const AdminSkills = () => {
             <div key={s.id} className="glass-card p-4 flex items-center gap-4">
               <div className="w-3 h-10 rounded-full" style={{ background: s.color }} />
               <div className="flex-1 min-w-0">
-                <p className="font-semibold truncate">
-                  {s.name} <span className="text-primary">{s.percentage}%</span>
-                </p>
+                <p className="font-semibold truncate">{s.name}</p>
                 <p className="text-xs text-muted-foreground truncate">
                   {s.category} · order {s.sort_order}
                   {s.featured ? ' · homepage' : ''}

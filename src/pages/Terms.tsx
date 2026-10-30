@@ -59,7 +59,7 @@ const Terms = () => (
           <div>
             <h2 className="text-xl font-display font-semibold text-foreground mb-3">6. Contact</h2>
             <p>
-              Questions about these terms can be sent to daniyal.asifjdk7778@gmail.com or through the contact page.
+              Questions about these terms can be sent to danyalasif.dev@gmail.com or through the contact page.
             </p>
           </div>
         </div>

@@ -8,7 +8,7 @@ import { adminCall } from '@/lib/adminApi';
 import { useSiteSettings, AboutContent } from '@/hooks/useSiteSettings';
 
 const AdminAbout = () => {
-  const { settings, loading, reload } = useSiteSettings();
+  const { settings, loading, reload, error } = useSiteSettings();
   const [form, setForm] = useState<AboutContent>(settings.about);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
@@ -39,6 +39,8 @@ const AdminAbout = () => {
       </div>
     );
   }
+
+  if (error) return <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 p-5 text-sm text-destructive">Could not load saved About content: {error}</div>;
 
   return (
     <form onSubmit={save} className="space-y-6">

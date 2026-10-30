@@ -50,6 +50,17 @@ async function verifyPassword(password: string): Promise<boolean> {
   return safeEqual(b64(bits), hashB64);
 }
 
+const hasValidPasswordHash = () => {
+  try {
+    const [algo, iterStr, saltB64, hashB64, extra] = ADMIN_PASSWORD_HASH.split("$");
+    const iterations = Number(iterStr);
+    if (extra !== undefined || algo !== "pbkdf2_sha256" || !Number.isInteger(iterations) || iterations < 100000 || iterations > 1000000) return false;
+    return fromB64(saltB64).length >= 16 && fromB64(hashB64).length === 32;
+  } catch {
+    return false;
+  }
+};
+
 async function hmac(data: string) {
   const key = await crypto.subtle.importKey(
     "raw", enc.encode(SESSION_SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
@@ -132,6 +143,9 @@ Deno.serve(async (req) => {
     // ---------- login ----------
     if (contentType.includes("application/json")) {
       const peek = await req.clone().json().catch(() => ({}));
+      if (peek?.action === "login_status") {
+        return json({ ready: ADMIN_USERNAME.length > 0 && hasValidPasswordHash() && SESSION_SECRET.length >= 32 });
+      }
       if (peek?.action === "login") {
         const ip = clientIp(req);
         const username = str(peek.username, 100);
@@ -207,9 +221,10 @@ Deno.serve(async (req) => {
           sort_order: int(p.sort_order, -100000, 100000, 0),
         };
 
-        const { error } = action === "project_create"
+        const result = action === "project_create"
           ? await supabase.from("projects").insert(payload)
-          : await supabase.from("projects").update(payload).eq("id", str(body?.id, 100));
+          : await supabase.from("projects").update(payload).eq("id", str(body?.id, 100)).select("id").maybeSingle();
+        const { error } = result;
         if (error) {
           if ((error as { code?: string }).code === "42703" && /video_url/i.test(error.message)) {
             return fail("The Supabase projects table is missing video_url. Apply supabase/migrations/20261029103000_add_project_video_url.sql before saving projects.", 500);
@@ -217,11 +232,13 @@ Deno.serve(async (req) => {
           if ((error as { code?: string }).code === "23505") return fail("That URL slug is already used by another project", 400);
           return fail("Could not save project", 500, error);
         }
+        if (action === "project_update" && !result.data) return fail("Project no longer exists. Refresh the list and try again.", 404);
         return json({ success: true });
       }
       case "project_delete": {
-        const { error } = await supabase.from("projects").delete().eq("id", str(body?.id, 100));
+        const { data, error } = await supabase.from("projects").delete().eq("id", str(body?.id, 100)).select("id").maybeSingle();
         if (error) return fail("Delete failed", 500, error);
+        if (!data) return fail("Project no longer exists. Refresh the list and try again.", 404);
         return json({ success: true });
       }
 
@@ -241,15 +258,18 @@ Deno.serve(async (req) => {
           featured: Boolean(s.featured),
           sort_order: int(s.sort_order, -100000, 100000, 0),
         };
-        const { error } = action === "skill_create"
+        const result = action === "skill_create"
           ? await supabase.from("skills").insert(payload)
-          : await supabase.from("skills").update(payload).eq("id", str(body?.id, 100));
+          : await supabase.from("skills").update(payload).eq("id", str(body?.id, 100)).select("id").maybeSingle();
+        const { error } = result;
         if (error) return fail("Could not save skill", 500, error);
+        if (action === "skill_update" && !result.data) return fail("Skill no longer exists. Refresh the list and try again.", 404);
         return json({ success: true });
       }
       case "skill_delete": {
-        const { error } = await supabase.from("skills").delete().eq("id", str(body?.id, 100));
+        const { data, error } = await supabase.from("skills").delete().eq("id", str(body?.id, 100)).select("id").maybeSingle();
         if (error) return fail("Delete failed", 500, error);
+        if (!data) return fail("Skill no longer exists. Refresh the list and try again.", 404);
         return json({ success: true });
       }
 
@@ -260,8 +280,9 @@ Deno.serve(async (req) => {
         if (!name) return fail("Name is required", 400);
         const github_url = str(s.github_url, 500);
         const linkedin_url = str(s.linkedin_url, 500);
+        const linkedin_banner_url = str(s.linkedin_banner_url, 1000);
         const profile_image = str(s.profile_image, 1000);
-        if (!isSafeUrl(github_url) || !isSafeUrl(linkedin_url) || !isSafeUrl(profile_image)) {
+        if (!isSafeUrl(github_url) || !isSafeUrl(linkedin_url) || !isSafeUrl(profile_image) || !isSafeUrl(linkedin_banner_url)) {
           return fail("Links must start with http:// or https://", 400);
         }
 
@@ -307,13 +328,15 @@ Deno.serve(async (req) => {
           intro: str(s.intro, 2000),
           github_url,
           linkedin_url,
+          linkedin_banner_url: linkedin_banner_url || null,
           profile_image: profile_image || null,
           updated_at: new Date().toISOString(),
         };
         if (about_payload) update.about_content = about_payload;
 
-        const { error } = await supabase.from("site_settings").update(update).eq("id", 1);
+        const { data, error } = await supabase.from("site_settings").update(update).eq("id", 1).select("id").maybeSingle();
         if (error) return fail("Could not save settings", 500, error);
+        if (!data) return fail("Site settings row is missing. Contact support to restore it.", 404);
         return json({ success: true });
       }
 

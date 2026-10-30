@@ -19,7 +19,7 @@ const Privacy = () => (
             <p>
               This is the personal portfolio website of Daniyal Asif, a MERN Stack Developer based in Rawalpindi,
               Pakistan. This policy explains what information this website collects, why, and what happens to it.
-              If you have questions, contact me at daniyal.asifjdk7778@gmail.com.
+              If you have questions, contact me at danyalasif.dev@gmail.com.
             </p>
           </div>
 
@@ -71,7 +71,7 @@ const Privacy = () => (
             <h2 className="text-xl font-display font-semibold text-foreground mb-3">6. Your choices</h2>
             <p>
               If you have emailed me and want your message or attachment deleted, send a request to
-              daniyal.asifjdk7778@gmail.com and I will remove it.
+              danyalasif.dev@gmail.com and I will remove it.
             </p>
           </div>
         </div>

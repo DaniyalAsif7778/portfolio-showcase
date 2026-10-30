@@ -7,13 +7,15 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SectionHeader from '@/components/SectionHeader';
 import SEO from '@/components/SEO';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 // EmailJS configuration placeholders - Replace with your actual IDs
-const EMAILJS_SERVICE_ID = 'service_ax27lze';
+const EMAILJS_SERVICE_ID = 'service_4pjt1o8';
 const EMAILJS_TEMPLATE_ID = 'template_j070jzr';
 const EMAILJS_PUBLIC_KEY = 'd7-qXzSLUnT7xVTbY';
 
 const Contact = () => {
+  const { settings } = useSiteSettings();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -53,7 +55,7 @@ const Contact = () => {
         from_email: formData.email,
         subject: formData.subject || 'No Subject',
         message: formData.message,
-        to_name: 'Daniyal',
+        to_name: settings.name,
       };
 
       // If there's an attachment, convert to base64
@@ -292,25 +294,14 @@ const Contact = () => {
                   Or reach me directly at:
                 </p>
                 <a
-                  href="mailto:daniyal.asifjdk7778@gmail.com"
+                  href={`mailto:${settings.about.email}`}
                   className="text-primary hover:underline font-medium"
                 >
-                  daniyal.asifjdk7778@gmail.com
+                  {settings.about.email}
                 </a>
               </div>
             </motion.div>
 
-            {/* EmailJS Setup Note */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-8 p-4 bg-secondary/30 rounded-lg border border-border text-center"
-            >
-              <p className="text-sm text-muted-foreground">
-                <strong>Note:</strong> To enable the contact form, replace the EmailJS placeholders in the code with your actual EmailJS credentials.
-              </p>
-            </motion.div>
           </div>
         </section>
       </main>

@@ -10,11 +10,13 @@ import ProjectVideoPreview from '@/components/ProjectVideoPreview';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { withCurrentProjectContent } from '@/lib/featuredProjectContent';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { getYouTubeThumbnailUrl } from '@/lib/projectVideo';
 
 interface Project { title: string; description: string; tech_stack: string[]; github_url: string | null; live_url: string | null; slug: string; video_url: string | null; }
 
 const Projects = () => {
+  const { settings } = useSiteSettings();
   const pageRef = useRef<HTMLElement>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -115,7 +117,7 @@ const Projects = () => {
           </div>
         ) : (
           <div className="project-index-list">
-            <div className="project-index-row project-reveal col-span-full"><span className="eyebrow">01</span><div><h2 className="text-xl font-semibold">Projects are on their way.</h2><p className="mt-1 text-sm text-muted-foreground">Take a look at my GitHub in the meantime.</p></div><a href="https://github.com/DaniyalAsif7778" target="_blank" rel="noreferrer" aria-label="Daniyal's GitHub"><Github className="text-[var(--blue)]" size={19} /></a></div>
+            <div className="project-index-row project-reveal col-span-full"><span className="eyebrow">01</span><div><h2 className="text-xl font-semibold">Projects are on their way.</h2><p className="mt-1 text-sm text-muted-foreground">Take a look at my GitHub in the meantime.</p></div><a href={settings.github_url} target="_blank" rel="noreferrer" aria-label={`${settings.name}'s GitHub`}><Github className="text-[var(--blue)]" size={19} /></a></div>
           </div>
         )}
       </main>

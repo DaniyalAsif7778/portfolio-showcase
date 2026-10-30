@@ -8,10 +8,10 @@ import { adminCall, adminUpload } from '@/lib/adminApi';
 import { useSiteSettings, SiteSettings } from '@/hooks/useSiteSettings';
 
 const AdminHome = () => {
-  const { settings, loading } = useSiteSettings();
+  const { settings, loading, reload, error } = useSiteSettings();
   const [form, setForm] = useState<SiteSettings>(settings);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState<'profile' | 'banner' | null>(null);
   const { toast } = useToast();
 
   useEffect(() => setForm(settings), [settings]);
@@ -19,18 +19,18 @@ const AdminHome = () => {
   const set = (k: keyof SiteSettings) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm({ ...form, [k]: e.target.value });
 
-  const upload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const upload = (field: 'profile_image' | 'linkedin_banner_url') => async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploading(true);
+    setUploading(field === 'profile_image' ? 'profile' : 'banner');
     try {
       const url = await adminUpload(file);
-      setForm((f) => ({ ...f, profile_image: url }));
-      toast({ title: 'Photo uploaded', description: 'Click Save to publish it.' });
+      setForm((f) => ({ ...f, [field]: url }));
+      toast({ title: 'Image uploaded', description: 'Save changes to publish it.' });
     } catch (err: unknown) {
       toast({ title: 'Error', description: err instanceof Error ? err.message : 'Could not upload photo.', variant: 'destructive' });
     } finally {
-      setUploading(false);
+      setUploading(null);
       e.target.value = '';
     }
   };
@@ -39,8 +39,10 @@ const AdminHome = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      await adminCall({ action: 'settings_update', settings: form });
-      toast({ title: 'Homepage updated' });
+      const { name, badge, tagline, intro, github_url, linkedin_url, linkedin_banner_url, profile_image } = form;
+      await adminCall({ action: 'settings_update', settings: { name, badge, tagline, intro, github_url, linkedin_url, linkedin_banner_url, profile_image } });
+      await reload();
+      toast({ title: 'Site profile saved', description: 'The homepage and profile page now use these values.' });
     } catch (err: unknown) {
       toast({ title: 'Error', description: err instanceof Error ? err.message : 'Could not save homepage settings.', variant: 'destructive' });
     } finally {
@@ -56,27 +58,37 @@ const AdminHome = () => {
     );
   }
 
+  if (error) return <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 p-5 text-sm text-destructive">Could not load saved profile content: {error}</div>;
+
   return (
     <form onSubmit={save} className="glass-card p-6 grid gap-5 sm:grid-cols-2">
       <div className="sm:col-span-2 flex items-center gap-5">
-        <img
-          src={form.profile_image || '/daniyal-profile.png'}
-          alt="Profile preview"
-          className="w-24 h-24 rounded-full object-cover border-4 border-primary/30"
-        />
-        <div className="space-y-2">
-          <p className="text-sm font-medium">Profile photo</p>
-          <label className="inline-flex">
-            <input type="file" accept="image/*" className="hidden" onChange={upload} disabled={uploading} />
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-border text-sm cursor-pointer hover:bg-secondary">
-              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload size={16} />} Upload new photo
-            </span>
-          </label>
-          {form.profile_image && (
-            <button type="button" className="block text-xs text-muted-foreground underline" onClick={() => setForm({ ...form, profile_image: null })}>
-              Use default photo
-            </button>
-          )}
+        <div className="sm:col-span-2 grid gap-5 md:grid-cols-[1fr_1.6fr]">
+          <div className="flex items-center gap-4 rounded-xl border border-border p-4">
+            <img src={form.profile_image || '/daniyal-profile.png'} alt="Profile preview" className="h-20 w-20 rounded-full object-cover border border-border" />
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Portfolio portrait</p>
+              <label className="inline-flex">
+                <input type="file" accept="image/png,image/jpeg,image/webp,image/avif" className="hidden" onChange={upload('profile_image')} disabled={uploading !== null} />
+                <span className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-border text-xs cursor-pointer hover:bg-secondary">
+                  {uploading === 'profile' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload size={14} />} Choose portrait
+                </span>
+              </label>
+              {form.profile_image && <button type="button" className="block text-xs text-muted-foreground underline" onClick={() => setForm({ ...form, profile_image: null })}>Use default portrait</button>}
+            </div>
+          </div>
+          <div className="overflow-hidden rounded-xl border border-border">
+            <img src={form.linkedin_banner_url || '/daniyal-linkedin-banner.jpg'} alt="LinkedIn banner preview" className="h-24 w-full object-cover" />
+            <div className="flex items-center justify-between gap-3 p-3">
+              <p className="text-sm font-medium">LinkedIn profile banner</p>
+              <label className="inline-flex">
+                <input type="file" accept="image/png,image/jpeg,image/webp,image/avif" className="hidden" onChange={upload('linkedin_banner_url')} disabled={uploading !== null} />
+                <span className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-border text-xs cursor-pointer hover:bg-secondary">
+                  {uploading === 'banner' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload size={14} />} Change banner
+                </span>
+              </label>
+            </div>
+          </div>
         </div>
       </div>
       <label className="space-y-1 text-sm">
@@ -103,7 +115,7 @@ const AdminHome = () => {
         LinkedIn link
         <Input value={form.linkedin_url} onChange={set('linkedin_url')} />
       </label>
-      <Button type="submit" className="sm:col-span-2" disabled={saving || uploading}>
+      <Button type="submit" className="sm:col-span-2" disabled={saving || uploading !== null}>
         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Homepage'}
       </Button>
     </form>

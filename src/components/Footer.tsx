@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Github, Linkedin, Mail } from 'lucide-react';
-import { linkedinProfileUrl, useSiteSettings } from '@/hooks/useSiteSettings';
+import { useSiteSettings } from '@/hooks/useSiteSettings';
 
 const Footer = () => {
   const { settings } = useSiteSettings();
@@ -33,15 +33,15 @@ const Footer = () => {
             >
               <Github size={20} />
             </a>
-            <a
-              href={linkedinProfileUrl}
+            {settings.linkedin_url && <a
+              href={settings.linkedin_url}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn profile"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               <Linkedin size={20} />
-            </a>
+            </a>}
             <a
               href={settings.about.email ? `mailto:${settings.about.email}` : '#'}
               aria-label="Send email"

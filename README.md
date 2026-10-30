@@ -41,6 +41,8 @@ The `admin-projects` Edge Function uses database-backed rate limits shared acros
 
 Apply pending migrations to the same Supabase project configured by `VITE_SUPABASE_URL` with `npx supabase db push --linked`, then deploy the `admin-projects` function with `npx supabase functions deploy admin-projects`. Keep `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, and `ADMIN_SESSION_SECRET` in Supabase Edge Function secrets. Supabase provides the function API credentials; never add a secret or service-role key to Vercel's browser environment.
 
+To reset the admin username and password on Windows, run `.\scripts\reset-admin-password.ps1` in PowerShell from the repository root. The script updates the password hash and session secret in the linked Supabase project. Updating the session secret also clears existing login rate-limit buckets and invalidates previous sessions.
+
 In Vercel, open **Project Settings → Environment Variables** and add these for Production (and Preview/Development if you use those environments):
 
 ```text

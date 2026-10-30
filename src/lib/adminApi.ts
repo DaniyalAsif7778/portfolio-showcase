@@ -45,6 +45,14 @@ export const adminLogin = async (username: string, password: string) => {
   sessionStorage.setItem(TOKEN_KEY, JSON.stringify({ token: data.token, exp: Date.now() + data.expiresIn }));
 };
 
+export const getAdminLoginStatus = async (): Promise<boolean> => {
+  const { data, error } = await supabase.functions.invoke('admin-projects', {
+    body: { action: 'login_status' },
+  });
+  if (error) throw new Error(await readError(error, data));
+  return Boolean(data?.ready);
+};
+
 export const adminCall = async (body: Record<string, unknown> | FormData) => {
   const token = getAdminToken();
   if (!token) throw new Error('Session expired. Please log in again.');

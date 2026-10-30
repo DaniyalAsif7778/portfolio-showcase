@@ -33,8 +33,6 @@ export const resumeSkills: Skill[] = [
   })),
 ];
 
-const resumeCategories = ['Frontend', 'Backend', 'Database', 'State Management', 'Tools & Deployment'];
-
 export const useSkills = () => {
   const [skills, setSkills] = useState<Skill[]>(resumeSkills);
   const [loading, setLoading] = useState(true);
@@ -46,8 +44,9 @@ export const useSkills = () => {
         const { data } = await supabase.from('skills').select('*').order('sort_order');
         if (!active) return;
         const savedSkills = (data || []) as unknown as Skill[];
-        const categories = new Set(savedSkills.map((skill) => skill.category));
-        setSkills(resumeCategories.every((category) => categories.has(category)) ? savedSkills : resumeSkills);
+        // Any admin-managed rows are authoritative. The old category gate silently
+        // discarded every saved edit unless five exact category names existed.
+        setSkills(savedSkills.length ? savedSkills : resumeSkills);
       } catch {
         if (active) setSkills(resumeSkills);
       } finally {

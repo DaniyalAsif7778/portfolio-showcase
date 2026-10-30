@@ -7,7 +7,7 @@ import { gsap } from 'gsap';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ProjectVideoPreview from '@/components/ProjectVideoPreview';
-import { defaultAbout, linkedinProfileUrl, useSiteSettings } from '@/hooks/useSiteSettings';
+import { defaultAbout, useSiteSettings } from '@/hooks/useSiteSettings';
 import { useSkills } from '@/hooks/useSkills';
 import { supabase } from '@/integrations/supabase/client';
 import { withCurrentProjectContent } from '@/lib/featuredProjectContent';
@@ -42,7 +42,8 @@ const Index = () => {
   const [activeProject, setActiveProject] = useState(0);
   const [projectDeckPinned, setProjectDeckPinned] = useState(false);
   const about = { ...defaultAbout, ...settings.about };
-  const skillGroups = Array.from(new Set(skills.map((skill) => skill.category)));
+  const homepageSkills = skills.some((skill) => skill.featured) ? skills.filter((skill) => skill.featured) : skills;
+  const skillGroups = Array.from(new Set(homepageSkills.map((skill) => skill.category)));
 
   useEffect(() => {
     if (!location.hash) return;
@@ -178,17 +179,18 @@ const Index = () => {
   return (
     <div ref={pageRef} className="min-h-screen bg-background">
       <SEO
-        title="Daniyal Asif | MERN Stack Developer Portfolio"
-        description="Portfolio of Daniyal Asif, a MERN Stack Developer in Rawalpindi, Pakistan. Explore full stack web applications built with MongoDB, Express.js, React, and Node.js."
+        title={`${settings.name} | ${settings.badge} Portfolio`}
+        description={settings.intro}
+        image={settings.profile_image || '/daniyal-profile.png'}
         path="/"
         structuredData={{
           '@type': 'Person',
-          name: 'Daniyal Asif',
-          jobTitle: 'MERN Stack Developer',
-          image: '/daniyal-profile.png',
+          name: settings.name,
+          jobTitle: settings.badge,
+          image: settings.profile_image || '/daniyal-profile.png',
           url: `${import.meta.env.VITE_SITE_URL || 'https://daniyal-porfolio-three.vercel.app'}/`,
-          sameAs: ['https://github.com/DaniyalAsif7778', 'https://www.linkedin.com/in/daniyal-asif-25ba10332/'],
-          address: { '@type': 'PostalAddress', addressLocality: 'Rawalpindi', addressCountry: 'PK' },
+          sameAs: [settings.github_url, settings.linkedin_url].filter(Boolean),
+          address: { '@type': 'PostalAddress', addressLocality: about.location, addressCountry: 'PK' },
           knowsAbout: ['MongoDB', 'Express.js', 'React', 'Node.js', 'TypeScript', 'REST APIs', 'Responsive web design'],
         }}
       />
@@ -196,10 +198,10 @@ const Index = () => {
       <main>
         <section id="top" className="container hero-grid scroll-mt-24" aria-labelledby="hero-title">
           <div className="hero-art hero-reveal">
-            <div className="hero-portrait-frame"><img className="hero-portrait" src="/daniyal-profile.png" alt={`Portrait of ${settings.name}, MERN Stack Developer`} width="800" height="800" /></div>
+            <div className="hero-portrait-frame"><img className="hero-portrait" src={settings.profile_image || '/daniyal-profile.png'} alt={`Portrait of ${settings.name}, ${settings.badge}`} width="800" height="800" /></div>
           </div>
           <div className="hero-copy">
-            <p className="eyebrow hero-reveal mb-7 flex items-center gap-3"><span className="h-px w-8 bg-[var(--green)]" />MERN Stack Developer<span className="text-[var(--green)]">/</span>Rawalpindi, Pakistan</p>
+            <p className="eyebrow hero-reveal mb-7 flex items-center gap-3"><span className="h-px w-8 bg-[var(--green)]" />{settings.badge}<span className="text-[var(--green)]">/</span>{about.location || 'Pakistan'}</p>
             <h1 id="hero-title" className="hero-title hero-reveal">Building clear, <em>considered</em> digital experiences.</h1>
             <p className="hero-lede hero-reveal mt-7">{settings.intro}</p>
             <div className="hero-reveal mt-9 flex flex-wrap items-center gap-3">
@@ -208,8 +210,8 @@ const Index = () => {
             </div>
             <div className="hero-reveal mt-8 flex items-center gap-5">
               <a href={settings.github_url} target="_blank" rel="noreferrer" aria-label="GitHub profile" className="text-muted-foreground hover:text-foreground"><Github size={18} /></a>
-              <a href={linkedinProfileUrl} target="_blank" rel="noreferrer" aria-label="LinkedIn profile" className="text-muted-foreground hover:text-foreground"><Linkedin size={18} /></a>
-              <span className="h-px w-12 bg-border" /><span className="eyebrow">Available for select projects</span>
+              {settings.linkedin_url && <a href={settings.linkedin_url} target="_blank" rel="noreferrer" aria-label="LinkedIn profile" className="text-muted-foreground hover:text-foreground"><Linkedin size={18} /></a>}
+              <span className="h-px w-12 bg-border" /><span className="eyebrow">{settings.tagline}</span>
             </div>
           </div>
         </section>
@@ -221,7 +223,7 @@ const Index = () => {
               {skillGroups.map((category, groupIndex) => (
                 <article className={`skill-group skill-group-${groupIndex % 4} home-reveal`} key={category}>
                   <p className="eyebrow mb-5">{String(groupIndex + 1).padStart(2, '0')} / {category}</p>
-                  <ul>{skills.filter((skill) => skill.category === category).map((skill) => <li key={skill.id}>{skill.name}</li>)}</ul>
+                  <ul>{homepageSkills.filter((skill) => skill.category === category).map((skill) => <li key={skill.id}>{skill.name}</li>)}</ul>
                 </article>
               ))}
             </div>
@@ -256,7 +258,7 @@ const Index = () => {
         <section id="about" className="about-section scroll-mt-20" aria-labelledby="about-title">
           <div className="container about-grid">
             <div className="about-card home-reveal">
-              <div className="about-profile"><p className="eyebrow mb-3">03 / About</p><h2 id="about-title" className="section-heading">About Daniyal.</h2><div className="about-photo-wrap"><img src="/daniyal-profile.png" alt={`Portrait of ${settings.name}`} width="800" height="800" loading="lazy" /></div></div>
+              <div className="about-profile"><p className="eyebrow mb-3">03 / About</p><h2 id="about-title" className="section-heading">About {settings.name.split(' ')[0]}.</h2><div className="about-photo-wrap"><img src={settings.profile_image || '/daniyal-profile.png'} alt={`Portrait of ${settings.name}`} width="800" height="800" loading="lazy" /></div></div>
               <div className="about-copy">
               <h3>{about.whoTitle}</h3>
               {about.paragraphs.filter(Boolean).map((paragraph, index) => <p key={index}>{paragraph}</p>)}
@@ -272,7 +274,7 @@ const Index = () => {
         <section id="contact" className="contact-section scroll-mt-20" aria-labelledby="contact-title">
           <div className="container py-24"><div className="contact-panel home-reveal">
             <div><p className="eyebrow mb-4">04 / Start a conversation</p><h2 id="contact-title" className="contact-title">Have a good idea?<br />Let’s make it real.</h2><p className="mt-5 max-w-xl leading-7 text-muted-foreground">I’m open to thoughtful collaborations, frontend opportunities, and projects that make the web easier to use.</p></div>
-            <div className="contact-actions"><Link className="contact-email" to="/contact">Send a message <ArrowUpRight size={16} /></Link><a className="contact-social" href={`mailto:${about.email || 'daniyal.asifjdk7778@gmail.com'}`}><Mail size={17} />{about.email || 'Get in touch by email'}</a><a className="contact-social" href={linkedinProfileUrl} target="_blank" rel="noreferrer"><Linkedin size={17} />Connect on LinkedIn</a><Link className="contact-social" to="/github"><Github size={17} />View GitHub profile</Link></div>
+            <div className="contact-actions"><Link className="contact-email" to="/contact">Send a message <ArrowUpRight size={16} /></Link>{about.email && <a className="contact-social" href={`mailto:${about.email}`}><Mail size={17} />{about.email}</a>}{settings.linkedin_url && <a className="contact-social" href={settings.linkedin_url} target="_blank" rel="noreferrer"><Linkedin size={17} />Connect on LinkedIn</a>}<Link className="contact-social" to="/github"><Github size={17} />View GitHub profile</Link></div>
           </div></div>
         </section>
       </main>

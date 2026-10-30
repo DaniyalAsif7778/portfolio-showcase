@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, Plus, X, Loader2, Pencil, Trash2, ArrowLeft, Star, ChevronLeft, ChevronRight } from 'lucide-react';
-import { adminCall, adminLogin, adminUpload, clearAdminToken, getAdminToken } from '@/lib/adminApi';
+import { Upload, Plus, X, Loader2, Pencil, Trash2, ArrowLeft, Star, ChevronLeft, ChevronRight, FolderOpen, House, UserRound, Wrench, ExternalLink, LogOut } from 'lucide-react';
+import { adminCall, adminLogin, adminUpload, clearAdminToken, getAdminToken, getAdminLoginStatus } from '@/lib/adminApi';
 import AdminSkills from '@/components/admin/AdminSkills';
 import AdminHome from '@/components/admin/AdminHome';
 import AdminAbout from '@/components/admin/AdminAbout';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import './Admin.css';
 
 type Project = {
   id: string;
@@ -39,7 +40,9 @@ const emptyForm = {
 };
 
 const Admin = () => {
-  const [authenticated, setAuthenticated] = useState(() => !!getAdminToken());
+  const [authenticated, setAuthenticated] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [loginStatus, setLoginStatus] = useState<'checking' | 'ready' | 'not-ready' | 'offline'>('checking');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
@@ -49,6 +52,7 @@ const Admin = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loadingList, setLoadingList] = useState(false);
+  const [projectLoadError, setProjectLoadError] = useState<string | null>(null);
   const [videoColumnStatus, setVideoColumnStatus] = useState<'checking' | 'ready' | 'missing' | 'unavailable'>('checking');
 
   const [form, setForm] = useState({ ...emptyForm });
@@ -57,6 +61,27 @@ const Admin = () => {
   const [otherImages, setOtherImages] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    let active = true;
+    const check = async () => {
+      const token = getAdminToken();
+      if (token) {
+        try {
+          await adminCall({ action: 'verify' });
+          if (active) setAuthenticated(true);
+        } catch {
+          clearAdminToken();
+        }
+      }
+      if (active) setCheckingSession(false);
+    };
+    void check();
+    void getAdminLoginStatus()
+      .then((ready) => active && setLoginStatus(ready ? 'ready' : 'not-ready'))
+      .catch(() => active && setLoginStatus('offline'));
+    return () => { active = false; };
+  }, []);
 
   const fetchProjects = useCallback(async () => {
     setLoadingList(true);
@@ -71,8 +96,13 @@ const Admin = () => {
         ? 'missing'
         : 'unavailable');
     const { data, error } = projectResult;
-    if (error) toast({ title: 'Error', description: 'Could not load projects.', variant: 'destructive' });
-    else setProjects((data || []) as Project[]);
+    if (error) {
+      setProjectLoadError(error.message);
+      toast({ title: 'Could not load projects', description: error.message, variant: 'destructive' });
+    } else {
+      setProjectLoadError(null);
+      setProjects((data || []) as Project[]);
+    }
     setLoadingList(false);
   }, [toast]);
 
@@ -103,7 +133,8 @@ const Admin = () => {
       await adminLogin(username.trim(), password);
       setAuthenticated(true);
     } catch (err: unknown) {
-      toast({ title: 'Access Denied', description: err instanceof Error ? err.message : 'Invalid credentials', variant: 'destructive' });
+      const message = err instanceof Error ? err.message : 'Invalid credentials';
+      toast({ title: 'Could not sign in', description: message, variant: 'destructive' });
     } finally {
       setPassword('');
       setLoggingIn(false);
@@ -147,7 +178,7 @@ const Admin = () => {
     try {
       await callAdmin({ action: 'project_delete', id: p.id });
       toast({ title: 'Project deleted' });
-      fetchProjects();
+      await fetchProjects();
     } catch (err: unknown) {
       toast({ title: 'Error', description: err instanceof Error ? err.message : 'Could not delete project.', variant: 'destructive' });
     }
@@ -189,7 +220,7 @@ const Admin = () => {
     if (videoColumnStatus === 'missing') {
       toast({
         title: 'Supabase database migration required',
-        description: 'Apply supabase/migrations/20261029103000_add_project_video_url.sql in the Supabase SQL Editor, then refresh this page before saving project changes.',
+        description: 'The project video column is missing. Apply supabase/migrations/20261030054000_repair_portfolio_content.sql, then refresh this page.',
         variant: 'destructive',
       });
       return;
@@ -239,7 +270,7 @@ const Admin = () => {
 
       resetForm();
       setView('list');
-      fetchProjects();
+      await fetchProjects();
     } catch (error: unknown) {
       toast({ title: 'Error', description: error instanceof Error ? error.message : 'Could not save project.', variant: 'destructive' });
     } finally {
@@ -248,16 +279,21 @@ const Admin = () => {
   };
 
   if (!authenticated) {
+    if (checkingSession) {
+      return <div className="min-h-screen bg-background flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" aria-label="Checking admin session" /></div>;
+    }
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-6">
+      <div className="admin-login-page">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-8 w-full max-w-md"
+          className="admin-login-card"
         >
-          <h2 className="text-2xl font-display font-bold mb-6 text-center">
-            <span className="gradient-text">Admin Access</span>
-          </h2>
+          <div className="admin-brand"><span className="admin-brand-mark">DA</span><div><p className="admin-brand-title">Portfolio Studio</p><p className="admin-brand-caption">Content management</p></div></div>
+          <h2 className="text-2xl font-display font-bold mb-2 text-center text-foreground">Welcome back</h2>
+          <p className="mb-6 text-center text-sm text-muted-foreground">Sign in to manage the content shown on your public portfolio.</p>
+          {loginStatus === 'not-ready' && <p role="alert" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">Admin credentials are missing or malformed in Supabase. Run <code>scripts/reset-admin-password.ps1</code>, then refresh this page.</p>}
+          {loginStatus === 'offline' && <p role="status" className="mb-4 rounded-lg border border-border bg-secondary/50 p-3 text-sm text-muted-foreground">Could not check Supabase right now. Check your connection and refresh.</p>}
           <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
             <Input
               placeholder="Username"
@@ -284,62 +320,53 @@ const Admin = () => {
   }
 
   if (view === 'list') {
+    const navItems = [
+      { key: 'projects', label: 'Projects', icon: FolderOpen, detail: 'Project work and demos' },
+      { key: 'skills', label: 'Skills', icon: Wrench, detail: 'Tools and capabilities' },
+      { key: 'homepage', label: 'Home page', icon: House, detail: 'Hero and profile links' },
+      { key: 'about', label: 'About', icon: UserRound, detail: 'Story and contact details' },
+    ] as const;
+    const activePage = navItems.find((item) => item.key === tab)!;
     return (
-      <div className="min-h-screen bg-background">
-        <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-          <div className="container mx-auto px-6 py-4 max-w-5xl flex items-center justify-between gap-3">
-            <div>
-              <h1 className="text-xl md:text-2xl font-display font-bold">
-                <span className="gradient-text">Admin Panel</span>
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                {loadingList ? 'Loading…' : `${projects.length} project${projects.length === 1 ? '' : 's'}`}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              {tab === 'projects' && (
-                <Button onClick={openNew}>
-                  <Plus size={18} className="mr-2" /> New Project
-                </Button>
-              )}
-              <Button variant="ghost" onClick={logout}>
-                Logout
-              </Button>
-            </div>
-          </div>
-          <div className="container mx-auto px-6 max-w-5xl flex gap-1">
-            {(['projects', 'skills', 'homepage', 'about'] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTab(t)}
-                className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${
-                  tab === t ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {t}
+      <div className="admin-workspace">
+        <aside className="admin-sidebar">
+          <div className="admin-brand"><span className="admin-brand-mark">DA</span><div><p className="admin-brand-title">Portfolio Studio</p><p className="admin-brand-caption">Content management</p></div></div>
+          <p className="admin-nav-label">Workspace</p>
+          <nav className="admin-nav" aria-label="Admin sections">
+            {navItems.map(({ key, label, icon: Icon }) => (
+              <button key={key} type="button" onClick={() => setTab(key)} className="admin-nav-button" aria-current={tab === key ? 'page' : undefined}>
+                <Icon size={17} />{label}{key === 'projects' && <span className="ml-auto text-[11px] opacity-70">{projects.length}</span>}
               </button>
             ))}
-          </div>
-        </header>
+          </nav>
+          <div className="admin-sidebar-note"><strong>Changes publish live</strong><p>Saved content is read from Supabase by your public portfolio on every device.</p></div>
+          <Button variant="ghost" onClick={logout} className="admin-sidebar-logout"><LogOut size={16} className="mr-2" /> Sign out</Button>
+        </aside>
 
-        {tab === 'homepage' ? (
-          <div className="container mx-auto px-6 py-10 max-w-5xl">
-            <AdminHome />
-          </div>
-        ) : tab === 'about' ? (
-          <div className="container mx-auto px-6 py-10 max-w-5xl">
-            <AdminAbout />
-          </div>
-        ) : tab === 'skills' ? (
-          <div className="container mx-auto px-6 py-10 max-w-5xl">
-            <AdminSkills />
-          </div>
-        ) : (
+        <div className="admin-main">
+          <header className="admin-topbar">
+            <p className="admin-breadcrumb">Workspace <span className="px-2 opacity-50">/</span><strong>{activePage.label}</strong></p>
+            <div className="admin-top-actions">
+              <a className="admin-view-site" href="/" target="_blank" rel="noreferrer">View portfolio <ExternalLink size={14} /></a>
+              {tab === 'projects' && <Button onClick={openNew}><Plus size={17} className="mr-2" /> New project</Button>}
+            </div>
+          </header>
+          <main className="admin-content">
+            <section className="admin-page-intro">
+              <p className="eyebrow">Portfolio content</p>
+              <h1>{activePage.label}</h1>
+              <p>{activePage.detail}. Changes saved here update the public portfolio, including the home page and project pages.</p>
+            </section>
 
-        <div className="container mx-auto px-6 py-10 max-w-5xl">
+            {tab === 'homepage' ? <AdminHome /> : tab === 'about' ? <AdminAbout /> : tab === 'skills' ? <AdminSkills /> : (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-            {loadingList ? (
+            {projectLoadError ? (
+              <div role="alert" className="glass-card p-8">
+                <p className="font-semibold">Supabase could not load project data.</p>
+                <p className="mt-2 text-sm text-muted-foreground">{projectLoadError}</p>
+                <Button className="mt-5" variant="outline" onClick={() => void fetchProjects()}>Retry</Button>
+              </div>
+            ) : loadingList ? (
               <div className="flex justify-center py-20">
                 <Loader2 className="animate-spin text-primary" />
               </div>
@@ -385,31 +412,24 @@ const Admin = () => {
               </div>
             )}
           </motion.div>
-        </div>
         )}
+          </main>
+        </div>
       </div>
     );
   }
 
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-6 py-12 max-w-3xl">
+    <div className="admin-workspace">
+      <div className="admin-main admin-editor-main">
+        <header className="admin-topbar">
+          <Button variant="ghost" onClick={() => { resetForm(); setView('list'); }}><ArrowLeft size={16} className="mr-2" /> Back to projects</Button>
+          <a className="admin-view-site" href="/" target="_blank" rel="noreferrer">View portfolio <ExternalLink size={14} /></a>
+        </header>
+      <main className="admin-content">
+        <section className="admin-page-intro"><p className="eyebrow">Project content</p><h1>{editingId ? 'Edit project' : 'Add a project'}</h1><p>Project details, links, images, and demo video are stored in Supabase and appear across the portfolio.</p></section>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <Button
-            variant="ghost"
-            onClick={() => {
-              resetForm();
-              setView('list');
-            }}
-            className="mb-4"
-          >
-            <ArrowLeft size={16} className="mr-2" /> Back to projects
-          </Button>
-          <h1 className="text-3xl font-display font-bold mb-8">
-            <span className="gradient-text">{editingId ? 'Edit Project' : 'Add New Project'}</span>
-          </h1>
-
           <form onSubmit={handleSubmit} className="space-y-6 glass-card p-6 md:p-8">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Project Name *</label>
@@ -642,6 +662,7 @@ const Admin = () => {
             </Button>
           </form>
         </motion.div>
+      </main>
       </div>
     </div>
   );

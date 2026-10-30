@@ -1,9 +1,7 @@
-import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SectionHeader from '@/components/SectionHeader';
-import SkillCircle from '@/components/SkillCircle';
 import { useSkills } from '@/hooks/useSkills';
 
 const Skills = () => {
@@ -24,34 +22,23 @@ const Skills = () => {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
-                {skills.map((skill, index) => (
-                  <SkillCircle key={skill.id} name={skill.name} percentage={skill.percentage} color={skill.color} delay={index * 0.05} />
-                ))}
-              </div>
-
               {categories.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
-                  viewport={{ once: true }}
-                  className="mt-24 max-w-5xl mx-auto"
-                >
-                  <h2 className="text-2xl font-display font-bold text-center mb-12 gradient-text">Skill Categories</h2>
-                  <div className="grid md:grid-cols-3 gap-8">
-                    {categories.map((cat) => (
-                      <div key={cat} className="glass-card p-6">
-                        <h3 className="text-lg font-display font-semibold mb-4 text-primary">{cat}</h3>
-                        <ul className="space-y-2 text-muted-foreground">
+                <div className="mt-8 max-w-5xl mx-auto">
+                  <h2 className="text-2xl font-display font-bold text-center mb-8 gradient-text">Tools and experience</h2>
+                  <div className="grid gap-5 md:grid-cols-2">
+                    {categories.map((cat, index) => (
+                      <article key={cat} className="glass-card p-6 md:p-7">
+                        <p className="eyebrow mb-3">{String(index + 1).padStart(2, '0')} / SKILLS</p>
+                        <h3 className="text-lg font-display font-semibold mb-5 text-foreground">{cat}</h3>
+                        <ul className="flex flex-wrap gap-2.5">
                           {skills.filter((s) => s.category === cat).map((s) => (
-                            <li key={s.id}>• {s.name}</li>
+                            <li key={s.id} className="rounded-full border px-3 py-2 text-sm text-foreground" style={{ borderColor: s.color }}>{s.name}</li>
                           ))}
                         </ul>
-                      </div>
+                      </article>
                     ))}
                   </div>
-                </motion.div>
+                </div>
               )}
             </>
           )}

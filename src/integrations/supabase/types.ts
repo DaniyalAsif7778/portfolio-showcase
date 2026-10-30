@@ -166,6 +166,7 @@ export type Database = {
           id: number
           intro: string
           linkedin_url: string
+          linkedin_banner_url: string | null
           name: string
           profile_image: string | null
           tagline: string
@@ -178,6 +179,7 @@ export type Database = {
           id?: number
           intro?: string
           linkedin_url?: string
+          linkedin_banner_url?: string | null
           name?: string
           profile_image?: string | null
           tagline?: string
@@ -190,6 +192,7 @@ export type Database = {
           id?: number
           intro?: string
           linkedin_url?: string
+          linkedin_banner_url?: string | null
           name?: string
           profile_image?: string | null
           tagline?: string
