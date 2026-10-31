@@ -35,7 +35,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import "./Admin.css";
-import SEO from '@/components/SEO';
 
 type Project = {
   id: string;
@@ -367,12 +366,7 @@ const Admin = () => {
     }
     return (
       <div className="admin-login-page">
-        <SEO
-          title="Admin Panel"
-          description="Private administration dashboard"
-          path="/admin"
-          noIndex={true}
-        />
+     
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
