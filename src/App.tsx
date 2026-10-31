@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
+import { Analytics } from "@vercel/analytics/react";
 import Index from "./pages/Index";
 import SEO from "@/components/SEO";
 
@@ -24,6 +25,7 @@ const App = () => (
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="portfolio-theme">
         <Toaster />
         <Sonner />
+        <Analytics />
         <BrowserRouter>
           <Suspense fallback={<div className="grid min-h-screen place-items-center" role="status" aria-live="polite">Loading page…</div>}>
             <Routes>
