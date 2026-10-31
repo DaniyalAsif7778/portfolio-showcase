@@ -196,7 +196,7 @@ const Index = () => {
       />
       <Navbar />
       <main>
-        <section id="top" className="container hero-grid scroll-mt-24" aria-labelledby="hero-title">
+        <section id="home" className="container hero-grid scroll-mt-24" aria-labelledby="hero-title">
           <div className="hero-art hero-reveal">
             <div className="hero-portrait-frame"><img className="hero-portrait" src={settings.profile_image || '/daniyal-profile.png'} alt={`Portrait of ${settings.name}, ${settings.badge}`} width="800" height="800" /></div>
           </div>
