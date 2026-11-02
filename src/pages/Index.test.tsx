@@ -59,7 +59,7 @@ describe('home page', () => {
     render(<MemoryRouter><Index /></MemoryRouter>);
 
     expect(screen.getByRole('img', { name: 'Portrait of Daniyal Asif, MERN Stack Developer' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /building clear, considered digital experiences/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /mern developer building clear web experiences/i })).toBeInTheDocument();
     expect((await screen.findAllByText('Project One')).length).toBeGreaterThan(0);
     expect(screen.getAllByText('Project Two').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Project Three').length).toBeGreaterThan(0);

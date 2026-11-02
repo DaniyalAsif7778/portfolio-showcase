@@ -202,7 +202,7 @@ const Index = () => {
           </div>
           <div className="hero-copy">
             <p className="eyebrow hero-reveal mb-7 flex items-center gap-3"><span className="h-px w-8 bg-[var(--green)]" />{settings.badge}<span className="text-[var(--green)]">/</span>{about.location || 'Pakistan'}</p>
-            <h1 id="hero-title" className="hero-title hero-reveal">Building clear, <em>considered</em> digital experiences.</h1>
+            <h1 id="hero-title" className="hero-title hero-reveal">MERN developer building clear <em>web experiences.</em></h1>
             <p className="hero-lede hero-reveal mt-7">{settings.intro}</p>
             <div className="hero-reveal mt-9 flex flex-wrap items-center gap-3">
               <a href="/#projects" onClick={(event) => { event.preventDefault(); navigate('/#projects'); document.getElementById('projects')?.scrollIntoView({ block: 'start', behavior: 'smooth' }); }} className="inline-flex items-center gap-3 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground hover:brightness-110">Explore my work <ArrowUpRight size={16} /></a>
