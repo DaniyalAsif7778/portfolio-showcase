@@ -73,7 +73,7 @@ const Navbar = () => {
     document.getElementById(path.split('#')[1])?.scrollIntoView({ block: 'start', behavior: 'smooth' });
   };
   return (
-    <nav className={`site-nav fixed inset-x-0 top-0 z-50${isNavHidden && !isOpen ? ' is-hidden' : ''}`} onFocusCapture={() => setIsNavHidden(false)}>
+    <nav className={`site-nav sticky inset-x-0 top-0 z-50${isNavHidden && !isOpen ? ' is-hidden' : ''}`} onFocusCapture={() => setIsNavHidden(false)}>
       <div className="container flex min-h-[76px] items-center justify-between">
         <Link to="/#top" aria-label={`${settings.name}, home`} onClick={(event) => handleSectionLink(event, '/#top')} className="flex items-center gap-3">
           <span className="site-mark">DA</span>

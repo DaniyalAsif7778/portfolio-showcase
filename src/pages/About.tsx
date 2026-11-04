@@ -13,7 +13,7 @@ const About = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="pt-24 pb-16">
+      <main className="pt-8 pb-16">
         <section className="container mx-auto px-6 py-16">
           <SectionHeader
             as="h1"

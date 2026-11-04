@@ -8,7 +8,7 @@ const Terms = () => (
   <div className="min-h-screen bg-background">
     <SEO title="Terms and Conditions" description="Terms for using Daniyal Asif's portfolio website and viewing its project descriptions, images, code samples, and contact form." path="/terms" />
     <Navbar />
-    <main className="pt-24 pb-16">
+    <main className="pt-8 pb-16">
       <section className="container mx-auto px-6 py-16 max-w-3xl">
         <h1 className="text-4xl font-display font-bold mb-3">Terms and Conditions</h1>
         <p className="text-muted-foreground text-sm mb-10">Last updated: {lastUpdated}</p>

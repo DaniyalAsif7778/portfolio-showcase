@@ -78,7 +78,7 @@ const ProjectDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="pt-24 pb-16 container mx-auto px-6">
+        <main className="pt-8 pb-16 container mx-auto px-6">
           <Skeleton className="h-8 w-48 mb-8" />
           <Skeleton className="h-64 w-full mb-8" />
           <Skeleton className="h-32 w-full" />
@@ -92,8 +92,8 @@ const ProjectDetail = () => {
       <div className="min-h-screen bg-background">
         <SEO title="Project not found" description="This portfolio project could not be found." path={`/projects/${slug || ''}`} noIndex />
         <Navbar />
-        <main className="pt-24 pb-16 container mx-auto px-6 text-center">
-          <h2 className="text-2xl font-display font-bold mb-4">{loadError ? 'Project unavailable' : 'Project not found'}</h2>
+        <main className="pt-8 pb-16 container mx-auto px-6 text-center">
+          <h1 className="text-2xl font-display font-bold mb-4">{loadError ? 'Project unavailable' : 'Project not found'}</h1>
           {loadError ? (
             <div className="flex flex-col items-center gap-4">
               <p role="alert" className="text-muted-foreground">{loadError}</p>
@@ -129,7 +129,7 @@ const ProjectDetail = () => {
       />
       <Navbar />
 
-      <main className="pt-24 pb-20">
+      <main className="pt-8 pb-20">
         <div className="container mx-auto px-6 max-w-6xl flex flex-col gap-12">
           <motion.nav
             initial={{ opacity: 0, x: -20 }}

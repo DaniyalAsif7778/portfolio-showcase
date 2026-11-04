@@ -181,7 +181,7 @@ const Index = () => {
       <SEO
         title="Daniyal Asif | MERN Stack Developer Portfolio"
         description="Daniyal Asif is a MERN Stack Developer in Rawalpindi, Pakistan, building full stack web applications with MongoDB, Express.js, React, and Node.js. Explore selected projects, technical skills, and contact details."
-        image={settings.profile_image || '/daniyal-profile.png'}
+        image="/portfolio-og.png"
         path="/"
         structuredData={{
           '@type': 'Person',
@@ -201,17 +201,17 @@ const Index = () => {
             <div className="hero-portrait-frame"><img className="hero-portrait" src={settings.profile_image || '/daniyal-profile.png'} alt={`Portrait of ${settings.name}, ${settings.badge}`} width="800" height="800" /></div>
           </div>
           <div className="hero-copy">
-            <p className="eyebrow hero-reveal mb-7 flex items-center gap-3"><span className="h-px w-8 bg-[var(--green)]" />{settings.badge}<span className="text-[var(--green)]">/</span>{about.location || 'Pakistan'}</p>
+            <p className="hero-meta eyebrow hero-reveal"><span className="hero-meta-identity"><span className="h-px w-8 bg-[var(--green)]" />{settings.badge}</span><span className="hero-meta-location"><span aria-hidden="true" className="text-[var(--green)]">/</span>{about.location || 'Pakistan'}</span></p>
             <h1 id="hero-title" className="hero-title hero-reveal">MERN developer building <em>useful web apps.</em></h1>
             <p className="hero-lede hero-reveal mt-7">{settings.intro}</p>
-            <div className="hero-reveal mt-9 flex flex-wrap items-center gap-3">
+            <div className="hero-actions hero-reveal mt-9 flex flex-wrap items-center gap-3">
               <a href="/#projects" onClick={(event) => { event.preventDefault(); navigate('/#projects'); document.getElementById('projects')?.scrollIntoView({ block: 'start', behavior: 'smooth' }); }} className="inline-flex items-center gap-3 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground hover:brightness-110">Explore my work <ArrowUpRight size={16} /></a>
               <a href="/Daniyal_Asif_CV.pdf" download className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-5 py-3.5 text-sm font-semibold hover:border-[var(--blue)]">Download CV <ArrowDown size={15} /></a>
             </div>
-            <div className="hero-reveal mt-8 flex items-center gap-5">
+            <div className="hero-social hero-reveal mt-8 flex items-center gap-5">
               <a href={settings.github_url} target="_blank" rel="noreferrer" aria-label="GitHub profile" className="text-muted-foreground hover:text-foreground"><Github size={18} /></a>
               {settings.linkedin_url && <a href={settings.linkedin_url} target="_blank" rel="noreferrer" aria-label="LinkedIn profile" className="text-muted-foreground hover:text-foreground"><Linkedin size={18} /></a>}
-              <span className="h-px w-12 bg-border" /><span className="eyebrow">{settings.tagline}</span>
+              <span className="hero-social-rule h-px w-12 bg-border" /><span className="hero-social-caption eyebrow">{settings.tagline}</span>
             </div>
           </div>
         </section>

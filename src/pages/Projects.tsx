@@ -90,7 +90,7 @@ const Projects = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main ref={pageRef} className="container pb-24 pt-36">
+      <main ref={pageRef} className="container pb-24 pt-12">
         <header className="section-band mb-12 grid gap-8 pb-8 md:grid-cols-[1fr_.7fr] md:items-end">
           <div><p className="eyebrow projects-reveal mb-4">Selected work / 2023 to 2026</p><h1 className="projects-reveal section-heading">Projects, built with purpose.</h1></div>
           <p className="projects-reveal max-w-lg leading-7 text-muted-foreground">A collection of interfaces and web experiences shaped by curiosity, clarity, and a respect for the details.</p>

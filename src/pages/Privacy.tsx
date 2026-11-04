@@ -8,7 +8,7 @@ const Privacy = () => (
   <div className="min-h-screen bg-background">
     <SEO title="Privacy Policy" description="Privacy information for Daniyal Asif's portfolio website, including contact form messages, public portfolio content, and visitor data." path="/privacy" />
     <Navbar />
-    <main className="pt-24 pb-16">
+    <main className="pt-8 pb-16">
       <section className="container mx-auto px-6 py-16 max-w-3xl">
         <h1 className="text-4xl font-display font-bold mb-3">Privacy Policy</h1>
         <p className="text-muted-foreground text-sm mb-10">Last updated: {lastUpdated}</p>

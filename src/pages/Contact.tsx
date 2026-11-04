@@ -99,9 +99,10 @@ const Contact = () => {
       <SEO title="Contact Daniyal Asif" description="Get in touch with Daniyal Asif about MERN stack development, frontend opportunities, collaborations, and web application projects." path="/contact" />
       <Navbar />
       
-      <main className="pt-24 pb-16">
+      <main className="pt-8 pb-16">
         <section className="container mx-auto px-6 py-16">
           <SectionHeader
+            as="h1"
             title="Contact"
             subtitle="Let's work together on your next project"
           />

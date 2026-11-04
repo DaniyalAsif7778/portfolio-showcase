@@ -10,7 +10,7 @@ type SEOProps = {
 };
 
 const SITE_NAME = 'Daniyal Asif | MERN Stack Developer';
-const PROFILE_IMAGE = '/daniyal-profile.png';
+const DEFAULT_SHARE_IMAGE = '/portfolio-og.png';
 const DEFAULT_SITE_URL = 'https://daniyal-porfolio-three.vercel.app';
 
 function upsertMeta(selector: string, attribute: 'name' | 'property', key: string, content: string) {
@@ -23,7 +23,7 @@ function upsertMeta(selector: string, attribute: 'name' | 'property', key: strin
   element.content = content;
 }
 
-const SEO = ({ title, description, path, image = PROFILE_IMAGE, noIndex = false, structuredData }: SEOProps) => {
+const SEO = ({ title, description, path, image = DEFAULT_SHARE_IMAGE, noIndex = false, structuredData }: SEOProps) => {
   useEffect(() => {
     const configuredOrigin = import.meta.env.VITE_SITE_URL?.trim() || DEFAULT_SITE_URL;
     const origin = (configuredOrigin || window.location.origin).replace(/\/$/, '');
@@ -48,14 +48,14 @@ const SEO = ({ title, description, path, image = PROFILE_IMAGE, noIndex = false,
     upsertMeta('meta[property="og:site_name"]', 'property', 'og:site_name', SITE_NAME);
     upsertMeta('meta[property="og:url"]', 'property', 'og:url', canonicalUrl);
     upsertMeta('meta[property="og:image"]', 'property', 'og:image', imageUrl);
-    upsertMeta('meta[property="og:image:alt"]', 'property', 'og:image:alt', 'Portrait of Daniyal Asif, MERN Stack Developer');
-    upsertMeta('meta[property="og:image:width"]', 'property', 'og:image:width', '800');
-    upsertMeta('meta[property="og:image:height"]', 'property', 'og:image:height', '800');
+    upsertMeta('meta[property="og:image:alt"]', 'property', 'og:image:alt', image === DEFAULT_SHARE_IMAGE ? 'Desktop preview of Daniyal Asif’s MERN Stack Developer portfolio' : 'Project preview from Daniyal Asif’s portfolio');
+    upsertMeta('meta[property="og:image:width"]', 'property', 'og:image:width', image === DEFAULT_SHARE_IMAGE ? '1200' : '800');
+    upsertMeta('meta[property="og:image:height"]', 'property', 'og:image:height', image === DEFAULT_SHARE_IMAGE ? '630' : '800');
     upsertMeta('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');
     upsertMeta('meta[name="twitter:title"]', 'name', 'twitter:title', pageTitle);
     upsertMeta('meta[name="twitter:description"]', 'name', 'twitter:description', description);
     upsertMeta('meta[name="twitter:image"]', 'name', 'twitter:image', imageUrl);
-    upsertMeta('meta[name="twitter:image:alt"]', 'name', 'twitter:image:alt', 'Portrait of Daniyal Asif, MERN Stack Developer');
+    upsertMeta('meta[name="twitter:image:alt"]', 'name', 'twitter:image:alt', image === DEFAULT_SHARE_IMAGE ? 'Desktop preview of Daniyal Asif’s MERN Stack Developer portfolio' : 'Project preview from Daniyal Asif’s portfolio');
 
     let jsonLd = document.head.querySelector<HTMLScriptElement>('#portfolio-page-jsonld');
     if (!jsonLd) {
