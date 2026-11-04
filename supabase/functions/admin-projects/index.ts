@@ -21,6 +21,7 @@ const ADMIN_USERNAME = Deno.env.get("ADMIN_USERNAME") ?? "";
 const ADMIN_PASSWORD_HASH = Deno.env.get("ADMIN_PASSWORD_HASH") ?? "";
 const SESSION_SECRET = Deno.env.get("ADMIN_SESSION_SECRET") ?? "";
 const SESSION_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+const MAX_PROJECT_IMAGE_BYTES = 20 * 1024 * 1024;
 
 const enc = new TextEncoder();
 
@@ -195,6 +196,26 @@ Deno.serve(async (req) => {
     switch (action) {
       case "verify":
         return json({ success: true });
+
+      case "create_image_upload": {
+        const uploadLimit = await enforceRateLimit("admin-image-upload", "admin", 60, 60 * 60);
+        if (uploadLimit) return uploadLimit;
+
+        const contentType = str(body?.contentType, 100);
+        const fileSize = Number(body?.fileSize);
+        if (!Number.isInteger(fileSize) || fileSize < 1 || fileSize > MAX_PROJECT_IMAGE_BYTES) {
+          return fail("Image is too large or empty (maximum 20 MB)", 400);
+        }
+        if (!/^image\/(png|jpe?g|webp|gif|avif)$/.test(contentType)) {
+          return fail("Only PNG, JPG, WEBP, GIF or AVIF images are allowed", 400);
+        }
+
+        const extension = contentType.split("/")[1].replace("jpeg", "jpg");
+        const path = `${Date.now()}-${crypto.randomUUID()}.${extension}`;
+        const { data, error } = await supabase.storage.from("project-images").createSignedUploadUrl(path);
+        if (error || !data) return fail("Could not prepare image upload", 500, error);
+        return json({ path: data.path, token: data.token });
+      }
 
       // ----- projects -----
       case "project_create":

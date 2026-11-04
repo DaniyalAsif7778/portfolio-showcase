@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ExternalLink, Github } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ExternalLink, Github } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import ProjectVideoScrub from '@/components/ProjectVideoScrub';
 import { withCurrentProjectContent } from '@/lib/featuredProjectContent';
 import SEO from '@/components/SEO';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 
 interface Project {
   id: string;
@@ -30,7 +31,25 @@ const ProjectDetail = () => {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [galleryOpen, setGalleryOpen] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const imageCount = project?.images?.length ?? 0;
+
+  const changeImage = (direction: -1 | 1) => {
+    if (!project?.images?.length) return;
+    setSelectedImage((current) => (current + direction + project.images.length) % project.images.length);
+  };
+
+  useEffect(() => {
+    if (!galleryOpen || imageCount < 2) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      const direction = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0;
+      if (!direction) return;
+      setSelectedImage((current) => (current + direction + imageCount) % imageCount);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [galleryOpen, imageCount]);
 
   useEffect(() => {
     let active = true;
@@ -214,12 +233,26 @@ const ProjectDetail = () => {
                     className="absolute -inset-0.5 opacity-20 blur-2xl"
                     style={{ background: 'var(--gradient-primary)' }}
                   />
-                  <div className="relative glass-card overflow-hidden rounded-2xl">
-                    <img
-                      src={project.images[selectedImage] || '/placeholder.svg'}
-                      alt={`${project.title} screenshot ${selectedImage + 1}`}
-                      className="w-full aspect-[16/10] object-cover"
-                    />
+                  <div className="relative overflow-hidden rounded-2xl border border-border bg-black/5 dark:bg-white/5">
+                    <button
+                      type="button"
+                      onClick={() => setGalleryOpen(true)}
+                      aria-label={`Open full-size ${project.title} screenshot ${selectedImage + 1}`}
+                      className="block w-full cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                    >
+                      <img
+                        src={project.images[selectedImage] || '/placeholder.svg'}
+                        alt={`${project.title} screenshot ${selectedImage + 1}`}
+                        className="block h-[min(68svh,760px)] w-full object-contain"
+                        decoding="async"
+                        fetchPriority="high"
+                      />
+                    </button>
+                    {project.images.length > 1 && <>
+                      <button type="button" onClick={() => changeImage(-1)} aria-label="Previous project image" className="absolute left-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-black/70 text-white shadow-lg transition hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"><ArrowLeft size={21} /></button>
+                      <button type="button" onClick={() => changeImage(1)} aria-label="Next project image" className="absolute right-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-black/70 text-white shadow-lg transition hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"><ArrowRight size={21} /></button>
+                      <span aria-live="polite" className="absolute bottom-3 right-3 rounded-full bg-black/75 px-3 py-1 text-xs font-medium text-white">{selectedImage + 1} / {project.images.length}</span>
+                    </>}
                   </div>
                 </div>
 
@@ -230,13 +263,13 @@ const ProjectDetail = () => {
                         key={i}
                         onClick={() => setSelectedImage(i)}
                         aria-label={`Show image ${i + 1}`}
-                        className={`bg-card border border-border rounded-xl overflow-hidden aspect-video transition-all ${
+                        className={`grid place-items-center bg-black/5 dark:bg-white/5 border border-border rounded-xl overflow-hidden aspect-video transition-all ${
                           selectedImage === i
                             ? 'outline outline-2 outline-primary/50 outline-offset-4'
                             : 'opacity-60 hover:opacity-100'
                         }`}
                       >
-                        <img src={img} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
+                        <img src={img} alt={`Show ${project.title} screenshot ${i + 1}`} className="w-full h-full object-contain" loading="lazy" />
                       </button>
                     ))}
                   </div>
@@ -244,6 +277,21 @@ const ProjectDetail = () => {
               </motion.div>
             )}
           </div>
+
+          <Dialog open={galleryOpen} onOpenChange={setGalleryOpen}>
+            <DialogContent className="h-[94svh] w-[96vw] max-w-[1600px] overflow-hidden border-white/15 bg-black p-3 text-white sm:rounded-xl sm:p-5">
+              <DialogTitle className="sr-only">{project.title} image {selectedImage + 1} of {project.images.length}</DialogTitle>
+              <DialogDescription className="sr-only">Use the previous and next buttons or arrow keys to browse project screenshots.</DialogDescription>
+              <div className="relative flex h-full min-h-0 items-center justify-center pt-8">
+                <img src={project.images[selectedImage]} alt={`${project.title} screenshot ${selectedImage + 1}`} className="max-h-full max-w-full object-contain" />
+                {project.images.length > 1 && <>
+                  <button type="button" onClick={() => changeImage(-1)} aria-label="Previous project image" className="absolute left-2 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 sm:left-5"><ArrowLeft size={24} /></button>
+                  <button type="button" onClick={() => changeImage(1)} aria-label="Next project image" className="absolute right-2 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 sm:right-5"><ArrowRight size={24} /></button>
+                  <span aria-live="polite" className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-sm text-white">{selectedImage + 1} / {project.images.length}</span>
+                </>}
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {project.video_url && <ProjectVideoScrub src={project.video_url} poster={project.images?.[0]} title={project.title} />}
 

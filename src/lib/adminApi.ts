@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import * as tus from 'tus-js-client';
 
 const TOKEN_KEY = 'admin_session';
 
@@ -69,8 +70,40 @@ export const adminCall = async (body: Record<string, unknown> | FormData) => {
 };
 
 export const adminUpload = async (file: File): Promise<string> => {
-  const fd = new FormData();
-  fd.append('file', file);
-  const data = await adminCall(fd);
-  return (data as { url: string }).url;
+  const maxBytes = 20 * 1024 * 1024;
+  if (file.size > maxBytes) throw new Error('Image is too large. The maximum size is 20 MB.');
+  if (!/^image\/(png|jpe?g|webp|gif|avif)$/.test(file.type)) {
+    throw new Error('Choose a PNG, JPG, WEBP, GIF, or AVIF image.');
+  }
+
+  const signed = await adminCall({
+    action: 'create_image_upload',
+    contentType: file.type,
+    fileSize: file.size,
+  }) as { path: string; token: string };
+  const supabaseUrl = new URL(import.meta.env.VITE_SUPABASE_URL);
+  const storageHost = supabaseUrl.hostname.replace(/\.supabase\.co$/i, '.storage.supabase.co');
+  const endpoint = `${supabaseUrl.protocol}//${storageHost}/storage/v1/upload/resumable`;
+
+  await new Promise<void>((resolve, reject) => {
+    const upload = new tus.Upload(file, {
+      endpoint,
+      headers: { 'x-signature': signed.token },
+      metadata: {
+        bucketName: 'project-images',
+        objectName: signed.path,
+        contentType: file.type,
+        cacheControl: '3600',
+      },
+      chunkSize: 6 * 1024 * 1024,
+      retryDelays: [0, 3000, 5000, 10000, 20000],
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      onError: reject,
+      onSuccess: () => resolve(),
+    });
+    upload.start();
+  });
+
+  return supabase.storage.from('project-images').getPublicUrl(signed.path).data.publicUrl;
 };

@@ -13,7 +13,7 @@ import { withCurrentProjectContent } from '@/lib/featuredProjectContent';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { getYouTubeThumbnailUrl } from '@/lib/projectVideo';
 
-interface Project { title: string; description: string; tech_stack: string[]; github_url: string | null; live_url: string | null; slug: string; video_url: string | null; }
+interface Project { title: string; description: string; tech_stack: string[]; github_url: string | null; live_url: string | null; slug: string; video_url: string | null; images: string[] | null; }
 
 const Projects = () => {
   const { settings } = useSiteSettings();
@@ -25,9 +25,9 @@ const Projects = () => {
   useEffect(() => {
     let active = true;
     const loadProjects = async () => {
-      const result = await supabase.from('projects').select('title, description, tech_stack, github_url, live_url, slug, video_url').order('created_at', { ascending: false });
+      const result = await supabase.from('projects').select('title, description, tech_stack, github_url, live_url, slug, video_url, images').order('created_at', { ascending: false });
       if (result.error && /video_url/i.test(result.error.message)) {
-        const fallback = await supabase.from('projects').select('title, description, tech_stack, github_url, live_url, slug').order('created_at', { ascending: false });
+        const fallback = await supabase.from('projects').select('title, description, tech_stack, github_url, live_url, slug, images').order('created_at', { ascending: false });
         if (fallback.error) {
           console.error('Unable to load projects:', fallback.error.message);
           if (active) { setLoadError(true); setLoading(false); }
@@ -105,7 +105,7 @@ const Projects = () => {
               <article key={project.slug} className="project-item project-reveal group">
                 <div className="project-visual group relative aspect-[16/10] overflow-hidden rounded-2xl bg-[var(--surface-alt)]">
                     <span className="project-number absolute left-4 top-4 z-10 rounded-full bg-black/65 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-white">0{index + 1} / PROJECT</span>
-                    {getYouTubeThumbnailUrl(project.video_url) ? <img className="absolute inset-0 h-full w-full object-cover" src={getYouTubeThumbnailUrl(project.video_url) || ''} alt={`${project.title} video thumbnail`} loading="lazy" /> : <div className="visual-window" aria-hidden="true"><div className="window-bar"><i className="window-dot" /><i className="window-dot" /><i className="window-dot" /></div><div className="window-body"><div className="window-lines"><i className="window-line blue" /><i className="window-line" /><i className="window-line short" /><i className="window-line" /></div><div className="window-tile" /></div></div>}
+                    {project.images?.[0] ? <img className="absolute inset-0 h-full w-full object-contain" src={project.images[0]} alt={`${project.title} project screenshot`} loading="lazy" /> : getYouTubeThumbnailUrl(project.video_url) ? <img className="absolute inset-0 h-full w-full object-contain" src={getYouTubeThumbnailUrl(project.video_url) || ''} alt={`${project.title} video thumbnail`} loading="lazy" /> : <div className="visual-window" aria-hidden="true"><div className="window-bar"><i className="window-dot" /><i className="window-dot" /><i className="window-dot" /></div><div className="window-body"><div className="window-lines"><i className="window-line blue" /><i className="window-line" /><i className="window-line short" /><i className="window-line" /></div><div className="window-tile" /></div></div>}
                     {project.video_url && <ProjectVideoPreview src={project.video_url} poster={getYouTubeThumbnailUrl(project.video_url)} title={project.title} />}
                 </div>
                 <Link to={`/projects/${project.slug}`} className="block">

@@ -762,7 +762,7 @@ const Admin = () => {
                         <img
                           src={url}
                           alt={`Project image ${i + 1}`}
-                          className={`w-24 h-24 rounded-md object-cover border-2 ${i === 0 ? "border-primary" : "border-transparent"}`}
+                          className={`w-24 h-24 rounded-md object-contain bg-black/5 dark:bg-white/5 border-2 ${i === 0 ? "border-primary" : "border-transparent"}`}
                         />
                         {i === 0 && (
                           <span className="absolute bottom-1 left-1 text-[10px] px-1.5 py-0.5 rounded bg-primary text-primary-foreground">
@@ -833,6 +833,7 @@ const Admin = () => {
                       {mainImage ? mainImage.name : "Choose main image..."}
                     </span>
                   </label>
+                  <p className="mt-2 text-xs text-muted-foreground">PNG, JPG, WEBP, GIF, or AVIF. Maximum file size: 20 MB. Full image resolution is preserved.</p>
                 </div>
               </div>
 
@@ -859,6 +860,7 @@ const Admin = () => {
                     <Upload size={20} />
                     <span>Add more images...</span>
                   </label>
+                  <p className="mt-2 text-xs text-muted-foreground">You can add multiple full-resolution screenshots, up to 20 MB each.</p>
                   {otherImages.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
                       {otherImages.map((file, i) => (
