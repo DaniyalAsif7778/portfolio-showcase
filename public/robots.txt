@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://daniyal-porfolio-three.vercel.app/sitemap.xml

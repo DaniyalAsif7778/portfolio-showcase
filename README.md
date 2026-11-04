@@ -59,7 +59,11 @@ The resume PDF is served from `public/Daniyal_Asif_CV.pdf`. Set `VITE_SITE_URL` 
 
 ## Search engine setup
 
-Page titles, descriptions, canonical links, social sharing tags, and structured data are managed by `src/components/SEO.tsx`. The production build creates `dist/robots.txt` and `dist/sitemap.xml`; it reads public project slugs from Supabase so project detail URLs are included automatically. The admin route has a `noindex` response header and client meta tag and is excluded from the sitemap.
+Page titles, descriptions, canonical links, social sharing tags, and structured data are managed by `src/components/SEO.tsx`. Each public route sets its own title, description, and self-referencing canonical URL. The HTML shell intentionally has no canonical tag: it is shared by every SPA route, so a home-page canonical there would conflict with the canonical URL set on project, profile, and contact pages.
+
+`public/robots.txt` points crawlers to `public/sitemap.xml`. The production build writes a **static** `dist/robots.txt` and `dist/sitemap.xml` for the configured `VITE_SITE_URL`. It includes the homepage, profiles, contact, privacy, terms, and project detail pages. At build time, public project slugs are read from Supabase so new and removed projects are reflected in the generated sitemap; when Supabase is unavailable, the committed sitemap provides a fallback list of the original project pages. No sitemap is generated or served dynamically per request. The admin and not-found routes are excluded from the sitemap and marked `noindex`.
+
+About, Skills, and the project showcase are homepage sections rather than separate indexable pages. Their fragment URLs are intentionally not listed in the sitemap. `/about`, `/skills`, and `/projects` redirect to those sections; `/github` redirects to `/profiles`.
 
 The current production URL is `https://daniyal-porfolio-three.vercel.app`. Set `VITE_SITE_URL` to that URL in the deployment environment if it changes. After deploying, confirm that the homepage, `/robots.txt`, `/sitemap.xml`, and a project detail URL all load over HTTPS before submitting the sitemap to Google Search Console.
 
@@ -67,9 +71,9 @@ To request Google indexing:
 
 1. Open [Google Search Console](https://search.google.com/search-console) and add the public domain as a URL-prefix property (or verify the domain with DNS).
 2. Complete Google's ownership verification. The DNS method uses a TXT record at your domain provider; URL-prefix properties can also offer an HTML file or meta tag method.
-3. In Search Console, open **Sitemaps**, enter `sitemap.xml`, and submit it.
-4. Use **URL inspection** for the homepage and important project pages, then select **Request indexing**.
-5. Return later to check indexing and any crawl or page experience issues. Google controls when pages are crawled and indexed, so submission is a request rather than a guarantee.
+3. Confirm `https://daniyal-porfolio-three.vercel.app/robots.txt` and `https://daniyal-porfolio-three.vercel.app/sitemap.xml` return HTTP 200 after deployment, then open **Sitemaps**, enter `sitemap.xml`, and submit it.
+4. Use **URL inspection** on the homepage, profiles, contact, and selected project URLs. Check the rendered page and Google-selected canonical, then request indexing for important URLs.
+5. Return to the Sitemaps and Pages reports to review fetch errors, discovered URLs, and indexing exclusions. Sitemap submission helps Google discover URLs; it cannot force crawling, indexing, or a ranking position. Google selects result titles and snippets and may take time to recrawl changes.
 
 ## Motion principles
 

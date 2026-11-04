@@ -179,14 +179,14 @@ const Index = () => {
   return (
     <div ref={pageRef} className="min-h-screen bg-background">
       <SEO
-        title={`${settings.name} | ${settings.badge} Portfolio`}
-        description={settings.intro}
+        title="Daniyal Asif | MERN Stack Developer Portfolio"
+        description="Daniyal Asif is a MERN Stack Developer in Rawalpindi, Pakistan, building full stack web applications with MongoDB, Express.js, React, and Node.js. Explore selected projects, technical skills, and contact details."
         image={settings.profile_image || '/daniyal-profile.png'}
         path="/"
         structuredData={{
           '@type': 'Person',
           name: settings.name,
-          jobTitle: settings.badge,
+          jobTitle: 'MERN Stack Developer',
           image: settings.profile_image || '/daniyal-profile.png',
           url: `${import.meta.env.VITE_SITE_URL || 'https://daniyal-porfolio-three.vercel.app'}/`,
           sameAs: [settings.github_url, settings.linkedin_url].filter(Boolean),
@@ -202,7 +202,7 @@ const Index = () => {
           </div>
           <div className="hero-copy">
             <p className="eyebrow hero-reveal mb-7 flex items-center gap-3"><span className="h-px w-8 bg-[var(--green)]" />{settings.badge}<span className="text-[var(--green)]">/</span>{about.location || 'Pakistan'}</p>
-            <h1 id="hero-title" className="hero-title hero-reveal">MERN developer building clear <em>web experiences.</em></h1>
+            <h1 id="hero-title" className="hero-title hero-reveal">MERN developer building <em>useful web apps.</em></h1>
             <p className="hero-lede hero-reveal mt-7">{settings.intro}</p>
             <div className="hero-reveal mt-9 flex flex-wrap items-center gap-3">
               <a href="/#projects" onClick={(event) => { event.preventDefault(); navigate('/#projects'); document.getElementById('projects')?.scrollIntoView({ block: 'start', behavior: 'smooth' }); }} className="inline-flex items-center gap-3 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground hover:brightness-110">Explore my work <ArrowUpRight size={16} /></a>

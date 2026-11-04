@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import { Link, NavLink as RouterNavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Moon, Sun, X } from 'lucide-react';
 import { useTheme } from 'next-themes';
@@ -15,11 +15,56 @@ const navItems = [
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isNavHidden, setIsNavHidden] = useState(false);
   const { settings } = useSiteSettings();
   const { theme, setTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const isDark = theme === 'dark';
+
+  useEffect(() => {
+    let previousY = window.scrollY;
+    let accumulatedDelta = 0;
+    let direction = 0;
+    let frame = 0;
+
+    const updateHeader = () => {
+      frame = 0;
+      const currentY = window.scrollY;
+      const delta = currentY - previousY;
+      const nextDirection = Math.sign(delta);
+
+      if (nextDirection === direction) accumulatedDelta += delta;
+      else accumulatedDelta = delta;
+      direction = nextDirection;
+      previousY = currentY;
+
+      if (currentY <= 64 || window.innerWidth >= 768) {
+        setIsNavHidden(false);
+        accumulatedDelta = 0;
+        return;
+      }
+      if (isOpen) return;
+      if (accumulatedDelta > 14) setIsNavHidden(true);
+      if (accumulatedDelta < -14) setIsNavHidden(false);
+    };
+
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateHeader);
+    };
+    const onResize = () => {
+      if (window.innerWidth >= 768) setIsNavHidden(false);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [isOpen]);
+
   const handleSectionLink = (event: MouseEvent<HTMLAnchorElement>, path: string) => {
     setIsOpen(false);
     if (location.pathname !== '/' || !path.startsWith('/#')) return;
@@ -28,7 +73,7 @@ const Navbar = () => {
     document.getElementById(path.split('#')[1])?.scrollIntoView({ block: 'start', behavior: 'smooth' });
   };
   return (
-    <nav className="site-nav fixed inset-x-0 top-0 z-50">
+    <nav className={`site-nav fixed inset-x-0 top-0 z-50${isNavHidden && !isOpen ? ' is-hidden' : ''}`} onFocusCapture={() => setIsNavHidden(false)}>
       <div className="container flex min-h-[76px] items-center justify-between">
         <Link to="/#top" aria-label={`${settings.name}, home`} onClick={(event) => handleSectionLink(event, '/#top')} className="flex items-center gap-3">
           <span className="site-mark">DA</span>
