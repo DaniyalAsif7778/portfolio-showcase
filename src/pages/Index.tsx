@@ -180,11 +180,12 @@ const Index = () => {
     <div ref={pageRef} className="min-h-screen bg-background">
       <SEO
         title="Daniyal Asif | MERN Stack Developer Portfolio"
-        description="Daniyal Asif is a MERN Stack Developer in Rawalpindi, Pakistan, building full stack web applications with MongoDB, Express.js, React, and Node.js. Explore selected projects, technical skills, and contact details."
+        description="Daniyal Asif is a MERN Stack Developer in Islamabad, Pakistan, building full stack web applications with MongoDB, Express.js, React, and Node.js. Explore selected projects, technical skills, and contact details."
         image="/portfolio-og.png"
         path="/"
         structuredData={{
           '@type': 'Person',
+          '@id': `${import.meta.env.VITE_SITE_URL || 'https://daniyal-porfolio-three.vercel.app'}/#person`,
           name: settings.name,
           jobTitle: 'MERN Stack Developer',
           image: settings.profile_image || '/daniyal-profile.png',

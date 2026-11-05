@@ -22,8 +22,8 @@ vi.mock('@/integrations/supabase/client', () => {
   return { supabase: { from: () => query, channel: () => channel, removeChannel: vi.fn() } };
 });
 vi.mock('@/hooks/useSiteSettings', () => ({
-  defaultAbout: { location: 'Rawalpindi', paragraphs: ['About Daniyal'], education: [], goals: [], languages: [] },
-  useSiteSettings: () => ({ settings: { name: 'Daniyal Asif', badge: 'MERN Stack Developer', intro: 'Building useful web apps.', tagline: 'Full stack developer', github_url: 'https://github.com/DaniyalAsif7778', linkedin_url: '', profile_image: null, about: { heading: 'About', whoTitle: 'Who I am', location: 'Rawalpindi', email: 'hello@example.com', paragraphs: ['About Daniyal'], education: [], educationTitle: 'Education', goals: [], goalsTitle: 'Exploring', languages: [] } } }),
+  defaultAbout: { location: 'Islamabad, Pakistan', paragraphs: ['About Daniyal'], education: [], goals: [], languages: [] },
+  useSiteSettings: () => ({ settings: { name: 'Daniyal Asif', badge: 'MERN Stack Developer', intro: 'Building useful web apps.', tagline: 'Full stack developer', github_url: 'https://github.com/DaniyalAsif7778', linkedin_url: '', profile_image: null, about: { heading: 'About', whoTitle: 'Who I am', location: 'Islamabad, Pakistan', email: 'hello@example.com', paragraphs: ['About Daniyal'], education: [], educationTitle: 'Education', goals: [], goalsTitle: 'Exploring', languages: [] } } }),
 }));
 vi.mock('@/hooks/useSkills', () => ({ useSkills: () => ({ skills: [{ id: '1', name: 'React', category: 'Frontend', featured: true }], loading: false }) }));
 vi.mock('@/components/Navbar', () => ({ default: () => <nav>Navigation</nav> }));
@@ -51,15 +51,15 @@ describe('home page', () => {
     Object.defineProperty(HTMLElement.prototype, 'scrollWidth', { configurable: true, get() { return this.classList?.contains('projects-track') ? 3000 : 0; } });
   });
   afterEach(() => {
-    delete (HTMLElement.prototype as Partial<HTMLElement>).clientWidth;
-    delete (HTMLElement.prototype as Partial<HTMLElement>).scrollWidth;
+    Reflect.deleteProperty(HTMLElement.prototype, 'clientWidth');
+    Reflect.deleteProperty(HTMLElement.prototype, 'scrollWidth');
   });
 
   it('shows the portrait first and renders each project in the horizontally pinned showcase', async () => {
     render(<MemoryRouter><Index /></MemoryRouter>);
 
     expect(screen.getByRole('img', { name: 'Portrait of Daniyal Asif, MERN Stack Developer' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /mern developer building clear web experiences/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /mern developer building useful web apps/i })).toBeInTheDocument();
     expect((await screen.findAllByText('Project One')).length).toBeGreaterThan(0);
     expect(screen.getAllByText('Project Two').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Project Three').length).toBeGreaterThan(0);

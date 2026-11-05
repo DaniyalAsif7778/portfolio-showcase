@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
+import { matchesImageSignature } from "./imageValidation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -128,6 +129,8 @@ const strArr = (v: unknown, maxItems: number, maxLen: number) =>
     : [];
 const isSafeUrl = (u: string) => !u || /^https?:\/\//i.test(u);
 const isSafeColor = (c: string) => /^(hsl\(\s*\d{1,3}(\.\d+)?\s+\d{1,3}%\s+\d{1,3}%\s*\)|#[0-9a-f]{3,8})$/i.test(c);
+const isProjectImagePath = (path: string) => /^\d+-[0-9a-f-]{36}\.(png|jpg|webp|gif|avif)$/i.test(path);
+const isImageContentType = (contentType: string) => /^image\/(png|jpe?g|webp|gif|avif)$/.test(contentType);
 
 const fail = (msg: string, status = 500, err?: unknown) => {
   if (err) console.error(msg, err);
@@ -178,13 +181,15 @@ Deno.serve(async (req) => {
       const file = form.get("file");
       if (!(file instanceof File)) return fail("No file provided", 400);
       if (file.size > 5 * 1024 * 1024) return fail("File too large (max 5MB)", 400);
-      if (!/^image\/(png|jpe?g|webp|gif|avif)$/.test(file.type)) return fail("Only PNG, JPG, WEBP, GIF or AVIF images are allowed", 400);
+      if (!isImageContentType(file.type)) return fail("Only PNG, JPG, WEBP, GIF or AVIF images are allowed", 400);
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      if (!matchesImageSignature(bytes, file.type)) return fail("The file contents do not match an allowed image type", 400);
 
       const ext = file.type.split("/")[1].replace("jpeg", "jpg");
       const fileName = `${Date.now()}-${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage
         .from("project-images")
-        .upload(fileName, new Uint8Array(await file.arrayBuffer()), { contentType: file.type });
+        .upload(fileName, bytes, { contentType: file.type });
       if (error) return fail("Upload failed", 500, error);
       const { data } = supabase.storage.from("project-images").getPublicUrl(fileName);
       return json({ url: data.publicUrl });
@@ -206,15 +211,81 @@ Deno.serve(async (req) => {
         if (!Number.isInteger(fileSize) || fileSize < 1 || fileSize > MAX_PROJECT_IMAGE_BYTES) {
           return fail("Image is too large or empty (maximum 20 MB)", 400);
         }
-        if (!/^image\/(png|jpe?g|webp|gif|avif)$/.test(contentType)) {
+        if (!isImageContentType(contentType)) {
           return fail("Only PNG, JPG, WEBP, GIF or AVIF images are allowed", 400);
         }
 
         const extension = contentType.split("/")[1].replace("jpeg", "jpg");
         const path = `${Date.now()}-${crypto.randomUUID()}.${extension}`;
-        const { data, error } = await supabase.storage.from("project-images").createSignedUploadUrl(path);
+        const { data, error } = await supabase.storage.from("project-image-staging").createSignedUploadUrl(path);
         if (error || !data) return fail("Could not prepare image upload", 500, error);
         return json({ path: data.path, token: data.token });
+      }
+
+      case "cancel_image_upload": {
+        const path = str(body?.path, 120);
+        if (!isProjectImagePath(path)) return fail("Invalid image upload path", 400);
+        const { error } = await supabase.storage.from("project-image-staging").remove([path]);
+        if (error) return fail("Could not cancel the staged image upload", 500, error);
+        return json({ success: true });
+      }
+
+      case "finalize_image_upload": {
+        const finalizeLimit = await enforceRateLimit("admin-image-finalize", "admin", 60, 60 * 60);
+        if (finalizeLimit) return finalizeLimit;
+        const path = str(body?.path, 120);
+        const contentType = str(body?.contentType, 100);
+        if (!isProjectImagePath(path) || !isImageContentType(contentType)) {
+          return fail("Invalid image upload", 400);
+        }
+
+        const staging = supabase.storage.from("project-image-staging");
+        const { data: stagedFile, error: downloadError } = await staging.download(path);
+        if (!stagedFile || downloadError) {
+          // Make finalization safe to retry if the public copy succeeded but its response was lost.
+          const { data: existingFile } = await supabase.storage.from("project-images").download(path);
+          if (existingFile && existingFile.size <= MAX_PROJECT_IMAGE_BYTES) {
+            const existingBytes = new Uint8Array(await existingFile.arrayBuffer());
+            if (matchesImageSignature(existingBytes, contentType)) {
+              const { data } = supabase.storage.from("project-images").getPublicUrl(path);
+              return json({ url: data.publicUrl });
+            }
+          }
+          return fail("Uploaded image could not be found. Please upload it again.", 400);
+        }
+
+        if (stagedFile.size < 1 || stagedFile.size > MAX_PROJECT_IMAGE_BYTES) {
+          await staging.remove([path]);
+          return fail("Image is empty or exceeds the 20 MB limit", 400);
+        }
+
+        const bytes = new Uint8Array(await stagedFile.arrayBuffer());
+        if (!matchesImageSignature(bytes, contentType)) {
+          await staging.remove([path]);
+          return fail("The file contents do not match the selected image type", 400);
+        }
+
+        const { error: publicUploadError } = await supabase.storage.from("project-images").upload(path, bytes, {
+          contentType,
+          cacheControl: "3600",
+          upsert: false,
+        });
+        if (publicUploadError) return fail("Could not publish the validated image", 500, publicUploadError);
+
+        const { error: cleanupError } = await staging.remove([path]);
+        if (cleanupError) console.error("Could not remove staged project image", cleanupError);
+        const { data } = supabase.storage.from("project-images").getPublicUrl(path);
+        return json({ url: data.publicUrl });
+      }
+
+      case "project_images_cleanup": {
+        const paths = strArr(body?.paths, 30, 120);
+        if (paths.length === 0 || paths.some((path) => !isProjectImagePath(path))) {
+          return fail("Invalid project image paths", 400);
+        }
+        const { error } = await supabase.storage.from("project-images").remove(paths);
+        if (error) return fail("Could not clean up uploaded images", 500, error);
+        return json({ success: true });
       }
 
       // ----- projects -----

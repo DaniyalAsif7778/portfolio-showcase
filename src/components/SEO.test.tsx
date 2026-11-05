@@ -15,7 +15,9 @@ describe('SEO', () => {
     expect(document.head.querySelector('link[rel="canonical"]')).toHaveProperty('href', 'https://daniyal-porfolio-three.vercel.app/projects/alpha');
     expect(document.head.querySelector('meta[name="description"]')).toHaveProperty('content', 'A useful project');
     expect(document.head.querySelector('meta[name="robots"]')).toHaveProperty('content', 'noindex, nofollow');
-    expect(JSON.parse(document.head.querySelector('#portfolio-page-jsonld')?.textContent || '{}')['@graph']).toContainEqual(expect.objectContaining({ '@type': 'CreativeWork', name: 'Alpha' }));
+    const pageGraph = JSON.parse(document.head.querySelector('#portfolio-page-jsonld')?.textContent || '{}')['@graph'];
+    expect(pageGraph).toContainEqual(expect.objectContaining({ '@type': 'CreativeWork', name: 'Alpha' }));
+    expect(pageGraph).not.toContainEqual(expect.objectContaining({ '@type': 'WebSite' }));
   });
 
   it('updates existing tags instead of adding duplicates', async () => {

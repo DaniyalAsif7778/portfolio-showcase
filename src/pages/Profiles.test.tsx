@@ -7,7 +7,7 @@ vi.mock('@/store/hooks', () => ({
   useAppDispatch: () => dispatch,
   useAppSelector: (select: (state: unknown) => unknown) => select({ github: { profile: { login: 'DaniyalAsif7778', name: 'Daniyal Asif', avatar_url: '/avatar.png', html_url: 'https://github.com/DaniyalAsif7778', bio: 'MERN developer', public_repos: 8, followers: 12 }, repos: [{ id: 1, name: 'portfolio-showcase', description: 'Portfolio source', html_url: 'https://github.com/DaniyalAsif7778/portfolio-showcase', language: 'TypeScript', stargazers_count: 2, forks_count: 1 }], loading: false, error: null } }),
 }));
-vi.mock('@/hooks/useSiteSettings', () => ({ useSiteSettings: () => ({ settings: { name: 'Daniyal Asif', tagline: 'MERN developer', github_url: 'https://github.com/DaniyalAsif7778', linkedin_url: 'https://www.linkedin.com/in/daniyal-asif-25ba10332/', linkedin_banner_url: null, profile_image: '/portrait.png', about: { location: 'Rawalpindi' } } }) }));
+vi.mock('@/hooks/useSiteSettings', () => ({ useSiteSettings: () => ({ settings: { name: 'Daniyal Asif', tagline: 'MERN developer', github_url: 'https://github.com/DaniyalAsif7778', linkedin_url: 'https://www.linkedin.com/in/daniyal-asif-25ba10332/', linkedin_banner_url: null, profile_image: '/portrait.png', about: { location: 'Islamabad' } } }) }));
 vi.mock('@/components/Navbar', () => ({ default: () => <nav>Navigation</nav> }));
 vi.mock('@/components/Footer', () => ({ default: () => <footer>Footer</footer> }));
 vi.mock('@/components/SEO', () => ({ default: () => null }));

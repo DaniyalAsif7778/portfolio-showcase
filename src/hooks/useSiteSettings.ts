@@ -42,10 +42,10 @@ export const defaultAbout: AboutContent = {
   subtitle: 'Get to know me better',
   whoTitle: 'Who I Am',
   paragraphs: [
-    'I’m a MERN Stack Developer from Rawalpindi, Pakistan, with hands-on project experience building full stack web applications using MongoDB, Express.js, React.js, and Node.js.',
+    'I’m a MERN Stack Developer from Islamabad, Pakistan, with hands-on project experience building full stack web applications using MongoDB, Express.js, React.js, and Node.js.',
     'I build reusable React components, integrate REST APIs, manage application state, and deploy frontend and backend applications. I’m interested in maintainable architecture, scalable backend design, and AI powered development.',
   ],
-  location: 'Rawalpindi, Punjab, Pakistan',
+  location: 'Islamabad, Pakistan',
   email: 'danyalasif.dev@gmail.com',
   phone: '0312 1982877',
   educationTitle: 'Education',

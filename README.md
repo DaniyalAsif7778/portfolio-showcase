@@ -41,7 +41,7 @@ The `admin-projects` Edge Function uses database-backed rate limits shared acros
 
 Apply pending migrations to the same Supabase project configured by `VITE_SUPABASE_URL` with `npx supabase db push --linked`, then deploy the `admin-projects` function with `npx supabase functions deploy admin-projects`. Keep `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, and `ADMIN_SESSION_SECRET` in Supabase Edge Function secrets. Supabase provides the function API credentials; never add a secret or service-role key to Vercel's browser environment.
 
-Project screenshots preserve their original dimensions and support PNG, JPG, WEBP, GIF, and AVIF files up to 20 MB each. Large images upload directly to Supabase Storage in resumable chunks. The migration configures the `project-images` bucket limit; make sure the Supabase project's global Storage file-size limit is at least 20 MB as well.
+Project screenshots preserve their original dimensions and support PNG, JPG, WEBP, GIF, and AVIF files up to 20 MB each. Large images upload to a private staging bucket in resumable chunks. The authenticated Edge Function checks the file signature before copying validated bytes into the public `project-images` bucket. Both buckets require the Supabase project's global Storage file-size limit to allow at least 20 MB.
 
 To reset the admin username and password on Windows, run `.\scripts\reset-admin-password.ps1` in PowerShell from the repository root. The script updates the password hash and session secret in the linked Supabase project. Updating the session secret also clears existing login rate-limit buckets and invalidates previous sessions.
 
@@ -61,11 +61,11 @@ The resume PDF is served from `public/Daniyal_Asif_CV.pdf`. Set `VITE_SITE_URL` 
 
 ## Search engine setup
 
-Page titles, descriptions, canonical links, social sharing tags, and structured data are managed by `src/components/SEO.tsx`. Each public route sets its own title, description, and self-referencing canonical URL. The HTML shell intentionally has no canonical tag: it is shared by every SPA route, so a home-page canonical there would conflict with the canonical URL set on project, profile, and contact pages.
+Client-side page titles, descriptions, canonical links, social sharing tags, and route-specific structured data are managed by `src/components/SEO.tsx`. The initial HTML response contains the homepage metadata and the site-wide Person and WebSite entities. Other routes currently update metadata after JavaScript starts; build-time rendering for route-specific initial HTML remains a follow-up.
 
 The default Open Graph and Twitter preview uses `public/portfolio-og.png`, a 1200 × 630 desktop capture of the portfolio. Project detail routes use their project image when available. The relevant keyword plan and its 20-phrase, two-device tracking scope are documented in `SEO_KEYWORD_PLAN.md`; phrases should appear only where they truthfully describe visible content.
 
-`public/robots.txt` points crawlers to `public/sitemap.xml`. The production build writes a **static** `dist/robots.txt` and `dist/sitemap.xml` for the configured `VITE_SITE_URL`. It includes the homepage, profiles, contact, privacy, terms, and project detail pages. At build time, public project slugs are read from Supabase so new and removed projects are reflected in the generated sitemap; when Supabase is unavailable, the committed sitemap provides a fallback list of the original project pages. No sitemap is generated or served dynamically per request. The admin and not-found routes are excluded from the sitemap and marked `noindex`.
+`public/robots.txt` points crawlers to `public/sitemap.xml`. The production build writes a **static** `dist/robots.txt` and `dist/sitemap.xml` for the configured `VITE_SITE_URL`. It includes the homepage, profiles, contact, privacy, terms, and project detail pages. At build time, public project slugs are read from Supabase so new and removed projects are reflected in the generated sitemap; when Supabase is unavailable, the committed sitemap provides a fallback list of the original project pages. Admin edits are reflected in the sitemap after the next build. No sitemap is generated or served dynamically per request. The admin and not-found routes are excluded from the sitemap and marked `noindex`.
 
 About, Skills, and the project showcase are homepage sections rather than separate indexable pages. Their fragment URLs are intentionally not listed in the sitemap. `/about`, `/skills`, and `/projects` redirect to those sections; `/github` redirects to `/profiles`.
 

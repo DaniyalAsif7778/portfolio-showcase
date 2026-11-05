@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Admin from './Admin';
 
 const { getAdminLoginStatus, getAdminToken, adminCall, adminLogin, toast } = vi.hoisted(() => ({ getAdminLoginStatus: vi.fn(), getAdminToken: vi.fn(), adminCall: vi.fn(), adminLogin: vi.fn(), toast: vi.fn() }));
-vi.mock('@/lib/adminApi', () => ({ getAdminLoginStatus, getAdminToken, adminCall, adminLogin, adminUpload: vi.fn(), clearAdminToken: vi.fn() }));
+vi.mock('@/lib/adminApi', () => ({ getAdminLoginStatus, getAdminToken, adminCall, adminLogin, adminUpload: vi.fn(), clearAdminToken: vi.fn(), getProjectImagePath: vi.fn(() => null) }));
 vi.mock('@/hooks/use-toast', () => ({ useToast: () => ({ toast }) }));
 vi.mock('@/components/admin/AdminHome', () => ({ default: () => null }));
 vi.mock('@/components/admin/AdminAbout', () => ({ default: () => null }));

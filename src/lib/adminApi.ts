@@ -85,25 +85,47 @@ export const adminUpload = async (file: File): Promise<string> => {
   const storageHost = supabaseUrl.hostname.replace(/\.supabase\.co$/i, '.storage.supabase.co');
   const endpoint = `${supabaseUrl.protocol}//${storageHost}/storage/v1/upload/resumable`;
 
-  await new Promise<void>((resolve, reject) => {
-    const upload = new tus.Upload(file, {
-      endpoint,
-      headers: { 'x-signature': signed.token },
-      metadata: {
-        bucketName: 'project-images',
-        objectName: signed.path,
-        contentType: file.type,
-        cacheControl: '3600',
-      },
-      chunkSize: 6 * 1024 * 1024,
-      retryDelays: [0, 3000, 5000, 10000, 20000],
-      uploadDataDuringCreation: true,
-      removeFingerprintOnSuccess: true,
-      onError: reject,
-      onSuccess: () => resolve(),
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const upload = new tus.Upload(file, {
+        endpoint,
+        headers: { 'x-signature': signed.token },
+        metadata: {
+          bucketName: 'project-image-staging',
+          objectName: signed.path,
+          contentType: file.type,
+          cacheControl: '3600',
+        },
+        chunkSize: 6 * 1024 * 1024,
+        retryDelays: [0, 3000, 5000, 10000, 20000],
+        uploadDataDuringCreation: true,
+        removeFingerprintOnSuccess: true,
+        onError: reject,
+        onSuccess: () => resolve(),
+      });
+      upload.start();
     });
-    upload.start();
-  });
+  } catch (uploadError) {
+    await adminCall({ action: 'cancel_image_upload', path: signed.path }).catch(() => undefined);
+    throw uploadError;
+  }
 
-  return supabase.storage.from('project-images').getPublicUrl(signed.path).data.publicUrl;
+  const finalized = await adminCall({
+    action: 'finalize_image_upload',
+    path: signed.path,
+    contentType: file.type,
+  }) as { url: string };
+  return finalized.url;
+};
+
+export const getProjectImagePath = (publicUrl: string): string | null => {
+  try {
+    const pathname = new URL(publicUrl).pathname;
+    const marker = '/storage/v1/object/public/project-images/';
+    const markerIndex = pathname.indexOf(marker);
+    if (markerIndex < 0) return null;
+    return decodeURIComponent(pathname.slice(markerIndex + marker.length));
+  } catch {
+    return null;
+  }
 };

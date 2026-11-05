@@ -8,7 +8,7 @@ import Terms from './Terms';
 import NotFound from './NotFound';
 
 vi.mock('@/hooks/useSiteSettings', () => ({
-  useSiteSettings: () => ({ settings: { name: 'Daniyal Asif', profile_image: '/portrait.png', about: { heading: 'About me', subtitle: 'My work', whoTitle: 'Who I am', paragraphs: ['I build MERN applications.'], location: 'Rawalpindi', email: 'hello@example.com', phone: '', educationTitle: 'Education', education: [], goalsTitle: 'Exploring', goals: [], languagesTitle: 'Languages', languages: [] } }, loading: false }),
+  useSiteSettings: () => ({ settings: { name: 'Daniyal Asif', profile_image: '/portrait.png', about: { heading: 'About me', subtitle: 'My work', whoTitle: 'Who I am', paragraphs: ['I build MERN applications.'], location: 'Islamabad', email: 'hello@example.com', phone: '', educationTitle: 'Education', education: [], goalsTitle: 'Exploring', goals: [], languagesTitle: 'Languages', languages: [] } }, loading: false }),
 }));
 vi.mock('@/hooks/useSkills', () => ({ useSkills: () => ({ skills: [{ id: 'react', name: 'React', category: 'Frontend', color: '#0f766e' }], loading: false }) }));
 vi.mock('@/components/Navbar', () => ({ default: () => <nav>Navigation</nav> }));

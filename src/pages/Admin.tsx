@@ -25,6 +25,7 @@ import {
   clearAdminToken,
   getAdminToken,
   getAdminLoginStatus,
+  getProjectImagePath,
 } from "@/lib/adminApi";
 import AdminSkills from "@/components/admin/AdminSkills";
 import AdminHome from "@/components/admin/AdminHome";
@@ -297,11 +298,15 @@ const Admin = () => {
     }
 
     setSubmitting(true);
+    const newlyUploadedPaths: string[] = [];
+    let projectSaved = false;
     try {
       const imageUrls: string[] = [...form.existingImages];
 
       if (mainImage) {
         const url = await uploadImage(mainImage);
+        const path = getProjectImagePath(url);
+        if (path) newlyUploadedPaths.push(path);
         // When editing without prior images, treat this as first (main). Otherwise append.
         if (imageUrls.length === 0) imageUrls.push(url);
         else imageUrls.splice(0, 0, url);
@@ -309,6 +314,8 @@ const Admin = () => {
 
       for (const img of otherImages) {
         const url = await uploadImage(img);
+        const path = getProjectImagePath(url);
+        if (path) newlyUploadedPaths.push(path);
         imageUrls.push(url);
       }
 
@@ -338,10 +345,16 @@ const Admin = () => {
         toast({ title: "Project added successfully!" });
       }
 
+      projectSaved = true;
       resetForm();
       setView("list");
       await fetchProjects();
     } catch (error: unknown) {
+      if (!projectSaved && newlyUploadedPaths.length > 0) {
+        await callAdmin({ action: "project_images_cleanup", paths: newlyUploadedPaths }).catch((cleanupError) => {
+          console.error("Could not clean up images after the project save failed", cleanupError);
+        });
+      }
       toast({
         title: "Error",
         description:

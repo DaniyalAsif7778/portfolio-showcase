@@ -142,7 +142,11 @@ const ProjectDetail = () => {
           description: project.description,
           url: `${import.meta.env.VITE_SITE_URL || 'https://daniyal-porfolio-three.vercel.app'}/projects/${project.slug}`,
           image: project.images?.[0],
-          author: { '@type': 'Person', name: 'Daniyal Asif' },
+          author: {
+            '@type': 'Person',
+            '@id': `${import.meta.env.VITE_SITE_URL || 'https://daniyal-porfolio-three.vercel.app'}/#person`,
+            name: 'Daniyal Asif',
+          },
           keywords: project.tech_stack?.join(', '),
         }}
       />

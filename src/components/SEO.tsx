@@ -57,28 +57,19 @@ const SEO = ({ title, description, path, image = DEFAULT_SHARE_IMAGE, noIndex = 
     upsertMeta('meta[name="twitter:image"]', 'name', 'twitter:image', imageUrl);
     upsertMeta('meta[name="twitter:image:alt"]', 'name', 'twitter:image:alt', image === DEFAULT_SHARE_IMAGE ? 'Desktop preview of Daniyal Asif’s MERN Stack Developer portfolio' : 'Project preview from Daniyal Asif’s portfolio');
 
-    let jsonLd = document.head.querySelector<HTMLScriptElement>('#portfolio-page-jsonld');
-    if (!jsonLd) {
-      jsonLd = document.createElement('script');
-      jsonLd.id = 'portfolio-page-jsonld';
-      jsonLd.type = 'application/ld+json';
-      document.head.appendChild(jsonLd);
-    }
     const graph = structuredData
       ? (Array.isArray(structuredData) ? structuredData : [structuredData])
       : [];
-    jsonLd.textContent = JSON.stringify({
-      '@context': 'https://schema.org',
-      '@graph': [
-        {
-          '@type': 'WebSite',
-          name: SITE_NAME,
-          url: `${origin}/`,
-          inLanguage: 'en',
-        },
-        ...graph,
-      ],
-    });
+    const existingJsonLd = document.head.querySelector<HTMLScriptElement>('#portfolio-page-jsonld');
+    if (graph.length === 0) {
+      existingJsonLd?.remove();
+    } else {
+      const jsonLd = existingJsonLd ?? document.createElement('script');
+      jsonLd.id = 'portfolio-page-jsonld';
+      jsonLd.type = 'application/ld+json';
+      jsonLd.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
+      if (!existingJsonLd) document.head.appendChild(jsonLd);
+    }
   }, [description, image, noIndex, path, structuredData, title]);
 
   return null;
