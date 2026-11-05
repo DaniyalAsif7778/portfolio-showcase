@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getYouTubeEmbedUrl, getYouTubeThumbnailUrl, getYouTubeVideoId } from './projectVideo';
+import { getCloudinaryPlayerUrl, getPlayableVideoUrl, getYouTubeEmbedUrl, getYouTubeThumbnailUrl, getYouTubeVideoId } from './projectVideo';
 
 describe('project video URL handling', () => {
   it.each([
@@ -17,5 +17,21 @@ describe('project video URL handling', () => {
     expect(getYouTubeVideoId(url)).toBeNull();
     expect(getYouTubeEmbedUrl(url)).toBeNull();
     expect(getYouTubeThumbnailUrl(url)).toBeNull();
+  });
+});
+
+describe('Cloudinary video URL handling', () => {
+  it('accepts Cloudinary player embed URLs when required IDs are present', () => {
+    const url = 'https://player.cloudinary.com/embed/?cloud_name=demo&public_id=videos%2Fsample';
+    expect(getCloudinaryPlayerUrl(url)).toBe(url);
+  });
+
+  it('adds an MP4 format to extensionless Cloudinary video delivery URLs', () => {
+    expect(getPlayableVideoUrl('https://res.cloudinary.com/demo/video/upload/v123/sample')).toBe('https://res.cloudinary.com/demo/video/upload/f_mp4/v123/sample');
+  });
+
+  it('leaves explicit formats and non-Cloudinary sources unchanged', () => {
+    expect(getPlayableVideoUrl('https://res.cloudinary.com/demo/video/upload/sample.webm')).toBe('https://res.cloudinary.com/demo/video/upload/sample.webm');
+    expect(getPlayableVideoUrl('https://cdn.example.com/video.mp4')).toBe('https://cdn.example.com/video.mp4');
   });
 });

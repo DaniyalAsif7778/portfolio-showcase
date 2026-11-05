@@ -30,3 +30,33 @@ export const getYouTubeThumbnailUrl = (source?: string | null): string | null =>
   const id = getYouTubeVideoId(source);
   return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
 };
+
+/** Cloudinary's player share URL is an iframe endpoint, not a native video source. */
+export const getCloudinaryPlayerUrl = (source?: string | null): string | null => {
+  if (!source) return null;
+  try {
+    const url = new URL(source);
+    if (url.protocol !== 'https:' || url.hostname.toLowerCase() !== 'player.cloudinary.com' || url.pathname !== '/embed/') return null;
+    if (!url.searchParams.get('cloud_name') || !url.searchParams.get('public_id')) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+};
+
+/** Add a browser-friendly MP4 delivery format to extensionless Cloudinary asset URLs. */
+export const getPlayableVideoUrl = (source?: string | null): string | null => {
+  if (!source) return null;
+  try {
+    const url = new URL(source);
+    if (url.protocol !== 'https:' || !/(^|\.)cloudinary\.com$/i.test(url.hostname) || !url.pathname.includes('/video/upload/')) return source;
+    if (/\.(mp4|webm|ogv|mov|m3u8)$/i.test(url.pathname)) return source;
+    const segments = url.pathname.split('/');
+    const uploadIndex = segments.indexOf('upload');
+    if (uploadIndex < 0) return source;
+    segments.splice(uploadIndex + 1, 0, 'f_mp4');
+    return `${url.origin}${segments.join('/')}${url.search}`;
+  } catch {
+    return source;
+  }
+};

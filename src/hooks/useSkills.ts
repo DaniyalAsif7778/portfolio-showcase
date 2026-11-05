@@ -20,6 +20,7 @@ export const resumeSkills: Skill[] = [
     ['API integration', 'Backend'], ['Server-side validation', 'Backend'], ['Error handling', 'Backend'],
     ['MongoDB', 'Database'], ['Mongoose', 'Database'], ['Schema design', 'Database'], ['CRUD operations', 'Database'],
     ['Context API', 'State Management'], ['Redux Toolkit', 'State Management'],
+    ['React Router', 'Routing'], ['TanStack Router', 'Routing'], ['GSAP', 'Animation'],
     ['Git', 'Tools & Deployment'], ['GitHub', 'Tools & Deployment'], ['Postman', 'Tools & Deployment'],
     ['Vercel', 'Tools & Deployment'], ['Environment configuration', 'Tools & Deployment'],
   ].map(([name, category], index) => ({

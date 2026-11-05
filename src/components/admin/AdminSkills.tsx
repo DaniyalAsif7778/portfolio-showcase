@@ -16,7 +16,7 @@ type Skill = {
   sort_order: number;
 };
 
-const empty = { name: '', percentage: 80, color: 'hsl(174 72% 56%)', category: 'Frontend Development', featured: false, sort_order: 0 };
+const empty = { name: '', percentage: 80, color: 'hsl(174 72% 56%)', category: 'Frontend', featured: false, sort_order: 0 };
 
 const AdminSkills = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -39,9 +39,9 @@ const AdminSkills = () => {
     void load();
   }, [load]);
 
-  const startNew = () => {
+  const startNew = (category = empty.category) => {
     setEditingId(null);
-    setForm({ ...empty, sort_order: skills.length + 1 });
+    setForm({ ...empty, category, sort_order: skills.length + 1 });
     setOpen(true);
   };
 
@@ -77,11 +77,13 @@ const AdminSkills = () => {
     }
   };
 
+  const skillGroups = Array.from(new Set(skills.map((skill) => skill.category || 'Other')));
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{skills.length} skills</p>
-        <Button onClick={startNew}>
+        <Button onClick={() => startNew()}>
           <Plus size={18} className="mr-2" /> New Skill
         </Button>
       </div>
@@ -100,7 +102,8 @@ const AdminSkills = () => {
           </label>
           <label className="space-y-1 text-sm">
             Category
-            <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+            <Input list="skill-category-options" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="e.g. Frontend" />
+            <datalist id="skill-category-options">{skillGroups.map((category) => <option value={category} key={category} />)}</datalist>
           </label>
           <label className="space-y-1 text-sm">
             Color (e.g. hsl(174 72% 56%) or #22d3ee)
@@ -125,26 +128,28 @@ const AdminSkills = () => {
           <Loader2 className="animate-spin text-primary" />
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {skills.map((s) => (
-            <div key={s.id} className="glass-card p-4 flex items-center gap-4">
-              <div className="w-3 h-10 rounded-full" style={{ background: s.color }} />
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold truncate">{s.name}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {s.category} · order {s.sort_order}
-                  {s.featured ? ' · homepage' : ''}
-                </p>
-              </div>
-              <Button size="icon" variant="outline" aria-label="Edit skill" onClick={() => startEdit(s)}>
-                <Pencil size={16} />
-              </Button>
-              <Button size="icon" variant="destructive" aria-label="Delete skill" onClick={() => remove(s)}>
-                <Trash2 size={16} />
-              </Button>
-            </div>
-          ))}
-        </div>
+        skills.length === 0 ? <div className="glass-card p-8 text-center"><p className="font-semibold">No skills added yet</p><p className="mt-2 text-sm text-muted-foreground">Create a skill and assign it to a category to build the homepage groups.</p></div> : (
+          <div className="space-y-5">
+            {skillGroups.map((category) => (
+              <section key={category} className="glass-card space-y-3 p-4 sm:p-5" aria-label={`${category} skills`}>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+                  <div><h2 className="font-display text-lg font-semibold">{category}</h2><p className="text-xs text-muted-foreground">{skills.filter((skill) => (skill.category || 'Other') === category).length} skills in this group</p></div>
+                  <Button size="sm" variant="outline" onClick={() => startNew(category)}><Plus size={15} className="mr-1" /> Add to category</Button>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {skills.filter((skill) => (skill.category || 'Other') === category).map((s) => (
+                    <div key={s.id} className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-background/60 p-3">
+                      <div className="h-9 w-1.5 shrink-0 rounded-full" style={{ background: s.color }} />
+                      <div className="min-w-0 flex-1"><p className="truncate font-semibold">{s.name}</p><p className="text-xs text-muted-foreground">Order {s.sort_order}{s.featured ? ' · Homepage' : ''}</p></div>
+                      <Button size="icon" variant="outline" aria-label={`Edit ${s.name}`} onClick={() => startEdit(s)}><Pencil size={16} /></Button>
+                      <Button size="icon" variant="destructive" aria-label={`Delete ${s.name}`} onClick={() => remove(s)}><Trash2 size={16} /></Button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )
       )}
     </div>
   );

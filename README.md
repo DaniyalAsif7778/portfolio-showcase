@@ -65,11 +65,13 @@ The resume PDF is served from `public/Daniyal_Asif_CV.pdf`. Set `VITE_SITE_URL` 
 
 ## Search engine setup
 
-Client-side page titles, descriptions, canonical links, social sharing tags, and route-specific structured data are managed by `src/components/SEO.tsx`. The initial HTML response contains the homepage metadata and the site-wide Person and WebSite entities. Other routes currently update metadata after JavaScript starts; build-time rendering for route-specific initial HTML remains a follow-up.
+Client-side page titles, descriptions, canonical links, social sharing tags, and route-specific structured data are managed by `src/components/SEO.tsx`. The production build also writes useful initial HTML for the homepage, profiles, contact, privacy, terms, and each public project page. The homepage shell contains the profile introduction, category-grouped skills, and selected project descriptions; project pages contain a heading, description, technologies, screenshot and links. The build uses current public Supabase content when available and falls back to committed copy.
 
 The default Open Graph and Twitter preview uses `public/portfolio-og.png`, a 1200 × 630 desktop capture of the portfolio. Project detail routes use their project image when available. The relevant keyword plan and its 20-phrase, two-device tracking scope are documented in `SEO_KEYWORD_PLAN.md`; phrases should appear only where they truthfully describe visible content.
 
 `public/robots.txt` points crawlers to `public/sitemap.xml`. The production build writes a **static** `dist/robots.txt` and `dist/sitemap.xml` for the configured `VITE_SITE_URL`. It includes the homepage, profiles, contact, privacy, terms, and project detail pages. At build time, public project slugs are read from Supabase so new and removed projects are reflected in the generated sitemap; when Supabase is unavailable, the committed sitemap provides a fallback list of the original project pages. Admin edits are reflected in the sitemap after the next build. No sitemap is generated or served dynamically per request. The admin and not-found routes are excluded from the sitemap and marked `noindex`.
+
+The contact form applies field length limits, file type and size checks, a hidden honeypot, and a one-minute browser cooldown after successful sends. These browser checks reduce accidental repeats and simple bot submissions; they are not a server-side CAPTCHA. In the EmailJS dashboard, add the deployed portfolio domain under **Account → Security → Allowed Domains** and enable its provider rate controls. CAPTCHA requires a verified Turnstile site key and secret before it can be enforced end-to-end.
 
 About, Skills, and the project showcase are homepage sections rather than separate indexable pages. Their fragment URLs are intentionally not listed in the sitemap. `/about`, `/skills`, and `/projects` redirect to those sections; `/github` redirects to `/profiles`.
 

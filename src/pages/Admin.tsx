@@ -949,16 +949,18 @@ const Admin = () => {
                 </label>
                 <Input
                   type="url"
-                  placeholder="YouTube link or direct MP4/WebM URL"
+                  placeholder="YouTube, Cloudinary, or direct MP4/WebM link"
                   value={form.videoUrl}
                   onChange={(e) =>
                     setForm({ ...form, videoUrl: e.target.value })
                   }
                 />
                 <p className="text-xs text-muted-foreground">
-                  YouTube links play on the project detail page. Direct MP4 or
-                  WebM links use scroll scrubbing. EmpoManager shows a public
-                  sample video until you add its own.
+                  Use a public Cloudinary video delivery URL
+                  (res.cloudinary.com/.../video/upload/...) or Cloudinary
+                  Player share URL. Direct video links need public access and
+                  a browser supported format such as MP4 or WebM. Player links
+                  play with controls; direct files also support scroll scrubbing.
                 </p>
                 {videoColumnStatus === "missing" && (
                   <p

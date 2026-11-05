@@ -13,6 +13,8 @@ import { useSiteSettings } from '@/hooks/useSiteSettings';
 const EMAILJS_SERVICE_ID = 'service_4pjt1o8';
 const EMAILJS_TEMPLATE_ID = 'template_j070jzr';
 const EMAILJS_PUBLIC_KEY = 'd7-qXzSLUnT7xVTbY';
+const CONTACT_COOLDOWN_KEY = 'portfolio-contact-last-sent';
+const CONTACT_COOLDOWN_MS = 60_000;
 
 const Contact = () => {
   const { settings } = useSiteSettings();
@@ -24,15 +26,25 @@ const Contact = () => {
   });
   const [attachment, setAttachment] = useState<File | null>(null);
   const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [rateLimited, setRateLimited] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const websiteFieldRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Limit file size to 5MB
+      const allowedTypes = new Set(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/png', 'image/jpeg']);
+      if (!allowedTypes.has(file.type)) {
+        setAttachment(null);
+        setAttachmentError('Choose a PDF, Word document, text file, PNG, or JPG.');
+        e.target.value = '';
+        return;
+      }
       if (file.size > 5 * 1024 * 1024) {
+        setAttachment(null);
         setAttachmentError('File size should be less than 5MB.');
+        e.target.value = '';
         return;
       }
       setAttachmentError(null);
@@ -50,6 +62,20 @@ const Contact = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    // Hidden honeypot for basic bot filtering; humans never interact with it.
+    if (websiteFieldRef.current?.value) return;
+    try {
+      const lastSentAt = Number(window.localStorage.getItem(CONTACT_COOLDOWN_KEY) || 0);
+      if (lastSentAt && Date.now() - lastSentAt < CONTACT_COOLDOWN_MS) {
+        setRateLimited(true);
+        setStatus('error');
+        setTimeout(() => { setStatus('idle'); setRateLimited(false); }, 5000);
+        return;
+      }
+    } catch {
+      // Storage can be unavailable in privacy modes; submission remains usable.
+    }
+    setRateLimited(false);
     setStatus('loading');
 
     try {
@@ -78,6 +104,16 @@ const Contact = () => {
         templateParams,
         EMAILJS_PUBLIC_KEY
       );
+      try {
+        window.localStorage.setItem(CONTACT_COOLDOWN_KEY, String(Date.now()));
+      } catch {
+        // The EmailJS service's own request limits still apply if storage is blocked.
+      }
+      try {
+        window.localStorage.setItem(CONTACT_COOLDOWN_KEY, String(Date.now()));
+      } catch {
+        // The provider's own request limits remain active if browser storage is blocked.
+      }
       
       setStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' });
@@ -115,6 +151,10 @@ const Contact = () => {
               className="glass-card p-8"
             >
               <form onSubmit={handleSubmit} className="space-y-6">
+                <div aria-hidden="true" className="contact-honeypot">
+                  <label htmlFor="website_url">Leave this field empty</label>
+                  <input ref={websiteFieldRef} id="website_url" name="website_url" type="text" autoComplete="off" tabIndex={-1} />
+                </div>
                 {/* Name Field */}
                 <div>
                   <label
@@ -129,6 +169,7 @@ const Contact = () => {
                       type="text"
                       id="name"
                       required
+                      maxLength={120}
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full pl-12 pr-4 py-3 bg-secondary/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-foreground placeholder:text-muted-foreground"
@@ -151,6 +192,7 @@ const Contact = () => {
                       type="email"
                       id="email"
                       required
+                      maxLength={254}
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full pl-12 pr-4 py-3 bg-secondary/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-foreground placeholder:text-muted-foreground"
@@ -172,6 +214,7 @@ const Contact = () => {
                     <input
                       type="text"
                       id="subject"
+                      maxLength={160}
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                       className="w-full pl-12 pr-4 py-3 bg-secondary/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-foreground placeholder:text-muted-foreground"
@@ -194,6 +237,7 @@ const Contact = () => {
                       id="message"
                       required
                       rows={5}
+                      maxLength={5000}
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       className="w-full pl-12 pr-4 py-3 bg-secondary/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-foreground placeholder:text-muted-foreground resize-none"
@@ -289,7 +333,7 @@ const Contact = () => {
                     className="flex items-center gap-2 text-destructive justify-center"
                   >
                     <AlertCircle size={20} />
-                    Failed to send message. Please try again or email directly.
+                    {rateLimited ? 'Please wait a minute between messages, or email me directly.' : 'Failed to send message. Please try again or email directly.'}
                   </motion.div>
                 )}
               </form>

@@ -47,8 +47,18 @@ const fallbackProjectPaths = [...sourceSitemap.matchAll(/<loc>https?:\/\/[^<]+\/
   .map(([, slug]) => `/projects/${slug}`);
 let projects = [];
 let projectLookupSucceeded = false;
+let profile = {};
+let skills = [];
 const supabaseUrl = env.VITE_SUPABASE_URL;
 const supabaseKey = env.VITE_SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_ANON_KEY;
+
+const fallbackSkills = [
+  ['React.js', 'Frontend'], ['JavaScript (ES6+)', 'Frontend'], ['TypeScript', 'Frontend'],
+  ['HTML5', 'Frontend'], ['CSS3', 'Frontend'], ['Tailwind CSS', 'Frontend'], ['Responsive design', 'Frontend'],
+  ['Node.js', 'Backend'], ['Express.js', 'Backend'], ['REST APIs', 'Backend'],
+  ['MongoDB', 'Database'], ['Mongoose', 'Database'], ['React Router', 'Routing'],
+  ['TanStack Router', 'Routing'], ['GSAP', 'Animation'], ['Redux Toolkit', 'State Management'],
+].map(([name, category]) => ({ name, category }));
 
 if (supabaseUrl && supabaseKey) {
   try {
@@ -68,9 +78,33 @@ if (supabaseUrl && supabaseKey) {
   } catch (error) {
     console.warn(`Sitemap will use its committed project URL fallback because Supabase project lookup failed: ${error.message}`);
   }
+
+  const readPublicTable = async (table, select) => {
+    const endpoint = new URL(`/rest/v1/${table}`, supabaseUrl);
+    endpoint.searchParams.set('select', select);
+    const response = await fetch(endpoint, {
+      headers: { apikey: supabaseKey, Authorization: `Bearer ${supabaseKey}` },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!response.ok) throw new Error(`Supabase ${table} returned HTTP ${response.status}`);
+    return response.json();
+  };
+  try {
+    const rows = await readPublicTable('skills', 'name,category,featured,sort_order');
+    if (Array.isArray(rows) && rows.length) skills = rows;
+  } catch (error) {
+    console.warn(`Homepage static skills will use resume fallback data: ${error.message}`);
+  }
+  try {
+    const rows = await readPublicTable('site_settings', 'name,badge,tagline,intro');
+    if (Array.isArray(rows) && rows[0]) profile = rows[0];
+  } catch (error) {
+    console.warn(`Homepage static intro will use fallback copy: ${error.message}`);
+  }
 } else {
   console.warn('Supabase environment values are missing; sitemap will use the committed project URL fallback.');
 }
+if (!skills.length) skills = fallbackSkills;
 
 const escapeXml = (value) => String(value).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&apos;');
 const escapeHtml = (value) => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
@@ -210,7 +244,18 @@ await mkdir(outDir, { recursive: true });
 const htmlPath = path.join(outDir, 'index.html');
 let html = (await readFile(htmlPath, 'utf8')).replaceAll('https://daniyal-porfolio-three.vercel.app', base);
 html = makeCanonical(html, `${base}/`);
-const homepageShell = `<main id="seo-static-content" style="${staticRootStyle}"><img src="/daniyal-profile.png" width="320" height="320" alt="Portrait of Daniyal Asif, MERN Stack Developer" style="display:block;width:min(42vw,320px);height:auto;border-radius:50%;margin-bottom:32px" /><p style="letter-spacing:.2em;text-transform:uppercase;color:#60cec3">MERN Stack Developer · Islamabad, Pakistan</p><h1 style="font-size:clamp(40px,8vw,96px);line-height:1.04;margin:22px 0">MERN developer building useful web apps.</h1><p style="font-size:18px;line-height:1.7;max-width:760px;color:#c2cfcd">I build full stack web applications with MongoDB, Express.js, React, and Node.js. Explore selected projects, technical skills, and ways to get in touch.</p><a href="/#projects" style="display:inline-flex;margin:16px 12px 0 0;padding:12px 18px;border:1px solid #45605e;border-radius:999px;color:#60cec3;text-decoration:none">Explore selected projects</a></main>`;
+const homepageSkillSet = skills.some((skill) => skill.featured) ? skills.filter((skill) => skill.featured) : skills;
+const skillGroups = [...new Set(homepageSkillSet.map((skill) => skill.category || 'Other'))];
+const skillsMarkup = skillGroups.map((category) => {
+  const names = homepageSkillSet.filter((skill) => (skill.category || 'Other') === category).map((skill) => escapeHtml(skill.name));
+  return `<section style="margin-top:22px"><h3 style="font-size:18px;color:#edf5f1">${escapeHtml(category)}</h3><ul style="display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0">${names.map((name) => `<li style="border:1px solid #45605e;border-radius:999px;padding:7px 10px;color:#c2cfcd">${name}</li>`).join('')}</ul></section>`;
+}).join('');
+const projectPreview = projectRows.slice(0, 3).map((project) => `<article style="border:1px solid #314648;border-radius:16px;padding:20px;margin-top:14px"><h3 style="font-size:21px;margin:0 0 8px"><a href="/projects/${escapeHtml(project.slug)}" style="color:#60cec3">${escapeHtml(project.title || project.slug)}</a></h3><p style="color:#c2cfcd;line-height:1.65;margin:0">${escapeHtml(project.description || 'Project work by Daniyal Asif.')}</p></article>`).join('');
+const homepageName = escapeHtml(profile.name || 'Daniyal Asif');
+const homepageBadge = escapeHtml(profile.badge || 'MERN Stack Developer · Islamabad, Pakistan');
+const homepageIntro = escapeHtml(profile.intro || 'I build full stack web applications with MongoDB, Express.js, React, and Node.js. Explore selected projects, technical skills, and ways to get in touch.');
+const homepageTagline = escapeHtml(profile.tagline || 'Building useful web apps.');
+const homepageShell = `<main id="seo-static-content" style="${staticRootStyle}"><img src="/daniyal-profile.png" width="320" height="320" alt="Portrait of ${homepageName}, MERN Stack Developer" style="display:block;width:min(42vw,320px);height:auto;border-radius:50%;margin-bottom:32px" /><p style="letter-spacing:.2em;text-transform:uppercase;color:#60cec3">${homepageBadge}</p><h1 style="font-size:clamp(40px,8vw,96px);line-height:1.04;margin:22px 0">${homepageName}: ${homepageTagline}</h1><p style="font-size:18px;line-height:1.7;max-width:760px;color:#c2cfcd">${homepageIntro}</p><a href="/#projects" style="display:inline-flex;margin:16px 12px 0 0;padding:12px 18px;border:1px solid #45605e;border-radius:999px;color:#60cec3;text-decoration:none">Explore selected projects</a><section style="margin-top:48px"><h2 style="font-size:30px">Technical skills</h2>${skillsMarkup}</section><section style="margin-top:48px"><h2 style="font-size:30px">Selected projects</h2>${projectPreview}</section><p style="margin-top:38px;color:#c2cfcd">Based in Islamabad, Pakistan · <a href="/contact" style="color:#60cec3">Contact ${homepageName}</a></p></main>`;
 html = html.replace('<div id="root"></div>', `<div id="root">${homepageShell}</div>`);
 await writeFile(htmlPath, html, 'utf8');
 await Promise.all([

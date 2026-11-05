@@ -59,6 +59,6 @@ describe('Admin page', () => {
     expect(await screen.findByRole('button', { name: /add your first project/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /add your first project/i }));
     expect(await screen.findByRole('heading', { name: 'Add a project' })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('YouTube link or direct MP4/WebM URL')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('YouTube, Cloudinary, or direct MP4/WebM link')).toBeInTheDocument();
   });
 });

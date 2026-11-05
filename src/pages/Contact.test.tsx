@@ -12,7 +12,10 @@ vi.mock('@/components/SectionHeader', () => ({ default: () => <h1>Contact</h1> }
 vi.mock('framer-motion', () => ({ motion: new Proxy({}, { get: (_target, tag) => tag }) }));
 
 describe('Contact page', () => {
-  beforeEach(() => send.mockReset());
+  beforeEach(() => {
+    send.mockReset();
+    window.localStorage.clear();
+  });
 
   it('submits contact details and reports success', async () => {
     send.mockResolvedValue({ status: 200 });
@@ -40,6 +43,14 @@ describe('Contact page', () => {
     fireEvent.change(input, { target: { files: [new File(['ok'], 'resume.pdf', { type: 'application/pdf' })] } });
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.getByText('resume.pdf')).toBeInTheDocument();
+  });
+
+  it('keeps the hidden honeypot and input length limits in place', () => {
+    const { container } = render(<Contact />);
+    expect(container.querySelector('input[name="website_url"]')).toHaveAttribute('tabindex', '-1');
+    expect(screen.getByLabelText('Name')).toHaveAttribute('maxLength', '120');
+    expect(screen.getByLabelText('Email')).toHaveAttribute('maxLength', '254');
+    expect(screen.getByLabelText('Message')).toHaveAttribute('maxLength', '5000');
   });
 
 });

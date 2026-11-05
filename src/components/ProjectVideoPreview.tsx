@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Play } from 'lucide-react';
-import { getYouTubeEmbedUrl } from '@/lib/projectVideo';
+import { getCloudinaryPlayerUrl, getPlayableVideoUrl, getYouTubeEmbedUrl } from '@/lib/projectVideo';
 
 type ProjectVideoPreviewProps = {
   src: string;
@@ -12,8 +12,11 @@ type ProjectVideoPreviewProps = {
 const ProjectVideoPreview = ({ src, title, poster }: ProjectVideoPreviewProps) => {
   const [playing, setPlaying] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [videoError, setVideoError] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const youtubeUrl = getYouTubeEmbedUrl(src);
+  const cloudinaryPlayerUrl = getCloudinaryPlayerUrl(src);
+  const playableVideoUrl = getPlayableVideoUrl(src);
   const finishPlayback = () => {
     setPlaying(false);
     setCompleted(true);
@@ -52,11 +55,11 @@ const ProjectVideoPreview = ({ src, title, poster }: ProjectVideoPreviewProps) =
       onMouseLeave={() => { if (completed) setCompleted(false); }}
       onTouchStart={() => { if (completed) setCompleted(false); }}
     >
-      {playing ? youtubeUrl ? (
+      {playing ? youtubeUrl || cloudinaryPlayerUrl ? (
         <iframe
           ref={iframeRef}
           className="absolute inset-0 h-full w-full border-0"
-          src={`${youtubeUrl}&autoplay=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`}
+          src={youtubeUrl ? `${youtubeUrl}&autoplay=1&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}` : cloudinaryPlayerUrl!}
           title={`${title} project video`}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           referrerPolicy="strict-origin-when-cross-origin"
@@ -64,7 +67,10 @@ const ProjectVideoPreview = ({ src, title, poster }: ProjectVideoPreviewProps) =
           allowFullScreen
         />
       ) : (
-        <video className="absolute inset-0 h-full w-full bg-black object-contain" src={src} poster={poster || undefined} controls autoPlay playsInline preload="auto" onEnded={finishPlayback} aria-label={`${title} project video`} />
+        <>
+          <video className="absolute inset-0 h-full w-full bg-black object-contain" src={playableVideoUrl || src} poster={poster || undefined} controls autoPlay playsInline preload="auto" onEnded={finishPlayback} onError={() => setVideoError(true)} aria-label={`${title} project video`} />
+          {videoError && <a className="absolute inset-x-4 bottom-4 z-20 rounded-xl bg-black/85 p-3 text-center text-sm text-white underline" href={src} target="_blank" rel="noreferrer">Video could not play here. Open the original video link.</a>}
+        </>
       ) : (
         <button
           type="button"

@@ -16,4 +16,11 @@ describe('ProjectVideoPreview', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Watch Demo project video' }));
     expect(screen.getByLabelText('Demo project video')).toHaveAttribute('src', 'https://cdn.example.com/demo.mp4');
   });
+
+  it('supports Cloudinary player share URLs in the inline player', () => {
+    const src = 'https://player.cloudinary.com/embed/?cloud_name=demo&public_id=videos%2Fsample';
+    render(<div className="group"><ProjectVideoPreview src={src} title="Demo" /></div>);
+    fireEvent.click(screen.getByRole('button', { name: 'Watch Demo project video' }));
+    expect(screen.getByTitle('Demo project video')).toHaveAttribute('src', src);
+  });
 });

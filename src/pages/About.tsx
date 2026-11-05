@@ -91,7 +91,7 @@ const About = () => {
                       <div key={i} className={`border-l-2 ${i % 2 === 0 ? 'border-primary' : 'border-secondary'} pl-4`}>
                         <h4 className="font-semibold text-foreground">{e.title}</h4>
                         <p className="text-muted-foreground">{e.school}</p>
-                        <p className="text-sm text-primary">{e.period}</p>
+                        {e.period && <p className="text-sm text-primary">{e.period}</p>}
                       </div>
                     ))}
                   </div>

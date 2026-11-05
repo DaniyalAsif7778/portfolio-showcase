@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { getYouTubeEmbedUrl } from '@/lib/projectVideo';
+import { getCloudinaryPlayerUrl, getPlayableVideoUrl, getYouTubeEmbedUrl } from '@/lib/projectVideo';
 
 type ProjectVideoScrubProps = {
   src: string;
@@ -12,6 +12,8 @@ type ProjectVideoScrubProps = {
 /** Direct videos keep native controls; scroll scrubbing is disabled for reduced-motion users. */
 const ProjectVideoScrub = ({ src, poster, title }: ProjectVideoScrubProps) => {
   const youtubeEmbedUrl = getYouTubeEmbedUrl(src);
+  const cloudinaryPlayerUrl = getCloudinaryPlayerUrl(src);
+  const playableVideoUrl = getPlayableVideoUrl(src);
   const sectionRef = useRef<HTMLElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -72,16 +74,16 @@ const ProjectVideoScrub = ({ src, poster, title }: ProjectVideoScrubProps) => {
 
   return (
     <section ref={sectionRef} className="project-film-section" aria-label={`${title} project film`}>
-      <div className="project-film-intro"><p className="eyebrow">{youtubeEmbedUrl ? 'Project video' : 'A closer look / Scroll to play'}</p><h2>{youtubeEmbedUrl ? 'Watch the demo.' : 'In motion.'}</h2><p>{youtubeEmbedUrl ? 'Play the walkthrough to see the project in action.' : 'Scroll through the presentation. The footage follows your pace.'}</p></div>
+      <div className="project-film-intro"><p className="eyebrow">{youtubeEmbedUrl || cloudinaryPlayerUrl ? 'Project video' : 'A closer look / Scroll to play'}</p><h2>{youtubeEmbedUrl || cloudinaryPlayerUrl ? 'Watch the demo.' : 'In motion.'}</h2><p>{youtubeEmbedUrl || cloudinaryPlayerUrl ? 'Play the walkthrough to see the project in action.' : 'Scroll through the presentation. The footage follows your pace.'}</p></div>
       <div ref={frameRef} className="project-film-frame">
-        {youtubeEmbedUrl ? (
-          <iframe src={youtubeEmbedUrl} title={`${title} project video`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen />
+        {youtubeEmbedUrl || cloudinaryPlayerUrl ? (
+          <iframe src={youtubeEmbedUrl || cloudinaryPlayerUrl!} title={`${title} project video`} allow="accelerometer; autoplay; clipboard-write; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen />
         ) : (
-          <video ref={videoRef} src={src} poster={poster || undefined} preload="metadata" playsInline controls aria-label={`${title} video presentation; use the controls or scroll to scrub through the footage`}>
+          <video ref={videoRef} src={playableVideoUrl || src} poster={poster || undefined} preload="metadata" playsInline controls aria-label={`${title} video presentation; use the controls or scroll to scrub through the footage`}>
             Your browser does not support embedded video.
           </video>
         )}
-        <span className="project-film-caption">{youtubeEmbedUrl ? 'YOUTUBE PROJECT WALKTHROUGH' : 'SCROLL CONTROLLED PRESENTATION'}</span>
+        <span className="project-film-caption">{youtubeEmbedUrl ? 'YOUTUBE PROJECT WALKTHROUGH' : cloudinaryPlayerUrl ? 'CLOUDINARY PROJECT WALKTHROUGH' : 'SCROLL CONTROLLED PRESENTATION'}</span>
       </div>
     </section>
   );
