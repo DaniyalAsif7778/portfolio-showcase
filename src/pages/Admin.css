@@ -64,10 +64,65 @@
   .admin-topbar { position: relative; min-height: 62px; }
 }
 
+.admin-theme-toggle { display: grid; width: 40px; height: 40px; flex: 0 0 auto; place-items: center; border: 1px solid #d8e2e1; border-radius: 12px; background: #fff; color: #142427; transition: background .2s ease, border-color .2s ease, transform .2s ease; }
+.admin-theme-toggle:hover { transform: translateY(-1px); border-color: #70aaa6; color: var(--admin-teal); }
+.admin-top-logout { min-height: 40px; }
+.admin-login-theme { position: fixed; top: 18px; right: 18px; }
+
+.dark .admin-workspace {
+  --admin-ink: #edf4f1;
+  --admin-muted: #a7bbb7;
+  --admin-line: #314648;
+  --admin-teal: #69d1c5;
+  color: var(--admin-ink);
+  background: #0b1719;
+}
+.dark .admin-sidebar { background: #102023; }
+.dark .admin-nav-label { color: #829a97; }
+.dark .admin-nav-button { color: #b3c5c1; }
+.dark .admin-nav-button:hover { background: #1b3335; color: #f3f8f5; }
+.dark .admin-nav-button[aria-current="page"] { background: #1c3d3d; color: #8be0d5; }
+.dark .admin-sidebar-note { background: #15292b; }
+.dark .admin-topbar { background: rgb(13 27 29 / 94%); }
+.dark .admin-view-site, .dark .admin-theme-toggle { border-color: #314648; background: #152729; color: #e3eeea; }
+.dark .admin-view-site:hover, .dark .admin-theme-toggle:hover { border-color: #69bcb3; color: #8de1d6; }
+.dark .admin-page-intro h1 { color: #eef5f1; }
+.dark .admin-page-intro p:last-child, .dark .admin-breadcrumb { color: #adc0bb; }
+.dark .admin-content .glass-card { border-color: #2b4143; background: #132527; color: #e8f0ec; box-shadow: 0 12px 32px rgb(0 0 0 / 18%); }
+.dark .admin-content input:not([type="checkbox"]):not([type="range"]), .dark .admin-content textarea, .dark .admin-content select { border-color: #354e50; background: #0f2022; color: #edf4f1; }
+.dark .admin-content input::placeholder, .dark .admin-content textarea::placeholder { color: #91a7a3; }
+.dark .admin-content input:focus, .dark .admin-content textarea:focus, .dark .admin-content select:focus { border-color: #67c5ba; }
+.dark .admin-content .bg-white { background-color: #172c2e; }
+.dark .admin-content .text-gray-700, .dark .admin-content .text-gray-800, .dark .admin-content .text-slate-700, .dark .admin-content .text-slate-800 { color: #d8e5df; }
+.dark .admin-login-page { background: radial-gradient(circle at 50% 10%, #173b39 0, transparent 38%), #0b1719; }
+.dark .admin-login-card { border-color: #2d4546; background: #122325; color: #eaf2ee; }
+.dark .admin-login-card input { border-color: #354e50; background: #0f2022; color: #edf4f1; }
+.dark .admin-login-card input::placeholder { color: #91a7a3; }
+
+@media (max-width: 850px) {
+  .admin-sidebar { padding: 12px 14px 0; }
+  .admin-nav { margin: 0 -2px; padding: 0 2px 8px; overscroll-behavior-x: contain; }
+  .admin-nav-button { flex: 0 0 auto; }
+  .admin-topbar { flex-wrap: wrap; gap: 10px; padding: 12px clamp(16px, 4vw, 28px); }
+  .admin-top-actions { flex-wrap: wrap; }
+  .admin-content { width: 100%; }
+}
+
 @media (max-width: 520px) {
-  .admin-topbar { align-items: flex-start; padding: 12px 16px; }
-  .admin-breadcrumb { padding-top: 11px; }
-  .admin-top-actions { gap: 6px; }
-  .admin-view-site { padding: 0 9px; font-size: 11px; }
-  .admin-content { padding: 22px 16px 36px; }
+  .admin-sidebar { padding: 10px 12px 0; }
+  .admin-brand { gap: 10px; }
+  .admin-brand-caption { font-size: 9px; }
+  .admin-nav-button { min-height: 40px; font-size: 12px; }
+  .admin-topbar { align-items: center; padding: 12px 14px; }
+  .admin-breadcrumb { padding-top: 0; }
+  .admin-top-actions { width: 100%; gap: 7px; }
+  .admin-view-site { min-height: 40px; padding: 0 10px; font-size: 11px; }
+  .admin-top-actions > button { min-height: 40px; }
+  .admin-top-logout { width: 40px; padding: 0; }
+  .admin-top-logout span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+  .admin-content { padding: 22px 14px 36px; }
+  .admin-page-intro { margin-bottom: 20px; }
+  .admin-page-intro p:last-child { font-size: 13px; }
+  .admin-content .glass-card { border-radius: 15px; }
+  .admin-login-theme { top: 12px; right: 12px; }
 }

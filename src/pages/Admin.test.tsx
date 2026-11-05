@@ -2,8 +2,9 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Admin from './Admin';
 
-const { getAdminLoginStatus, hasAdminSession, adminCall, adminLogin, toast } = vi.hoisted(() => ({ getAdminLoginStatus: vi.fn(), hasAdminSession: vi.fn(), adminCall: vi.fn(), adminLogin: vi.fn(), toast: vi.fn() }));
+const { getAdminLoginStatus, hasAdminSession, adminCall, adminLogin, toast, setTheme } = vi.hoisted(() => ({ getAdminLoginStatus: vi.fn(), hasAdminSession: vi.fn(), adminCall: vi.fn(), adminLogin: vi.fn(), toast: vi.fn(), setTheme: vi.fn() }));
 vi.mock('@/lib/adminApi', () => ({ getAdminLoginStatus, hasAdminSession, adminCall, adminLogin, adminUpload: vi.fn(), clearAdminToken: vi.fn(), getProjectImagePath: vi.fn(() => null) }));
+vi.mock('next-themes', () => ({ useTheme: () => ({ theme: 'light', setTheme }) }));
 vi.mock('@/hooks/use-toast', () => ({ useToast: () => ({ toast }) }));
 vi.mock('@/components/admin/AdminHome', () => ({ default: () => null }));
 vi.mock('@/components/admin/AdminAbout', () => ({ default: () => null }));
@@ -36,6 +37,15 @@ describe('Admin page', () => {
     render(<Admin />);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/credentials are missing or malformed/i);
+  });
+
+  it('lets the admin switch to dark mode from the sign-in screen', async () => {
+    render(<Admin />);
+    const themeButton = await screen.findByRole('button', { name: 'Switch to dark theme' });
+
+    fireEvent.click(themeButton);
+
+    expect(setTheme).toHaveBeenCalledWith('dark');
   });
 
   it('opens the project editor after authentication', async () => {

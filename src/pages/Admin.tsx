@@ -17,7 +17,10 @@ import {
   Wrench,
   ExternalLink,
   LogOut,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import {
   adminCall,
   adminLogin,
@@ -62,6 +65,23 @@ const emptyForm = {
   techStack: [] as string[],
   existingImages: [] as string[],
   sortOrder: 0,
+};
+
+const AdminThemeToggle = ({ className = "" }: { className?: string }) => {
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark";
+  return (
+    <button
+      type="button"
+      className={`admin-theme-toggle ${className}`}
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
+      aria-pressed={isDark}
+      title={`Switch to ${isDark ? "light" : "dark"} theme`}
+    >
+      {isDark ? <Sun size={17} /> : <Moon size={17} />}
+    </button>
+  );
 };
 
 const Admin = () => {
@@ -371,7 +391,7 @@ const Admin = () => {
     }
     return (
       <div className="admin-login-page">
-     
+        <AdminThemeToggle className="admin-login-theme" />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -532,11 +552,16 @@ const Admin = () => {
               >
                 View portfolio <ExternalLink size={14} />
               </a>
+              <AdminThemeToggle />
               {tab === "projects" && (
                 <Button onClick={openNew}>
                   <Plus size={17} className="mr-2" /> New project
                 </Button>
               )}
+              <Button variant="outline" className="admin-top-logout" onClick={logout} aria-label="Sign out">
+                <LogOut size={16} className="sm:mr-2" />
+                <span>Sign out</span>
+              </Button>
             </div>
           </header>
           <main className="admin-content">
@@ -666,6 +691,7 @@ const Admin = () => {
           >
             View portfolio <ExternalLink size={14} />
           </a>
+          <AdminThemeToggle />
         </header>
         <main className="admin-content">
           <section className="admin-page-intro">
