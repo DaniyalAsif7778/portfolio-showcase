@@ -28,6 +28,7 @@
 }
 
 .admin-brand { display: flex; align-items: center; gap: 12px; padding: 2px 8px 28px; }
+.admin-menu-toggle { display: none; }
 .admin-brand-mark { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 14px; color: white; background: #0c7774; font-size: 14px; font-weight: 800; letter-spacing: -.06em; }
 .admin-brand-title { font-size: 14px; font-weight: 750; letter-spacing: -.03em; }
 .admin-brand-caption { margin-top: 3px; color: var(--admin-muted); font-size: 10px; letter-spacing: .13em; text-transform: uppercase; }
@@ -67,10 +68,12 @@
 @media (max-width: 850px) {
   .admin-sidebar { position: sticky; inset: 0 0 auto; width: 100%; height: auto; padding: 12px 16px 0; border-right: 0; border-bottom: 1px solid var(--admin-line); }
   .admin-brand { padding: 0 4px 12px; }
+  .admin-menu-toggle { display: grid; width: 40px; height: 40px; flex: 0 0 auto; place-items: center; margin-left: auto; border: 1px solid var(--admin-line); border-radius: 11px; background: transparent; color: var(--admin-ink); }
   .admin-brand-mark { width: 36px; height: 36px; border-radius: 11px; }
   .admin-nav-label, .admin-sidebar-note, .admin-sidebar-logout { display: none; }
-  .admin-nav { display: flex; overflow-x: auto; gap: 4px; scrollbar-width: thin; }
-  .admin-nav-button { min-width: max-content; min-height: 42px; padding: 0 11px; }
+  .admin-nav { display: none; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 0 0 12px; }
+  .admin-nav.is-open { display: grid; }
+  .admin-nav-button { min-width: 0; min-height: 42px; padding: 0 11px; }
   .admin-main { margin-left: 0; }
   .admin-topbar { position: relative; min-height: 62px; }
 }
@@ -124,7 +127,7 @@
   .admin-sidebar { padding: 10px 12px 0; }
   .admin-brand { gap: 10px; }
   .admin-brand-caption { font-size: 9px; }
-  .admin-nav-button { min-height: 40px; font-size: 12px; }
+  .admin-nav-button { min-height: 42px; font-size: 12px; }
   .admin-topbar { align-items: center; padding: 12px 14px; }
   .admin-breadcrumb { padding-top: 0; }
   .admin-top-actions { width: 100%; justify-content: flex-start; gap: 7px; }

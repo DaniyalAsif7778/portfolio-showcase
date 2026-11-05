@@ -61,4 +61,21 @@ describe('Admin page', () => {
     expect(await screen.findByRole('heading', { name: 'Add a project' })).toBeInTheDocument();
     expect(screen.getByPlaceholderText('YouTube, Cloudinary, or direct MP4/WebM link')).toBeInTheDocument();
   });
+
+  it('provides collapsible section menu navigation after authentication', async () => {
+    adminLogin.mockImplementation(async () => { hasAdminSession.mockResolvedValue(true); });
+    render(<Admin />);
+    await screen.findByText('Sign in to manage the content shown on your public portfolio.');
+    fireEvent.change(screen.getByPlaceholderText('Username'), { target: { value: 'admin' } });
+    fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: 'correct-password' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Login' }));
+
+    const menuButton = await screen.findByRole('button', { name: 'Open admin menu' });
+    fireEvent.click(menuButton);
+    expect(menuButton).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Skills' }));
+    expect(await screen.findByRole('heading', { name: 'Skills' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Open admin menu' })).toHaveAttribute('aria-expanded', 'false');
+  });
 });

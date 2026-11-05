@@ -19,6 +19,8 @@ import {
   LogOut,
   Sun,
   Moon,
+  Menu,
+  X as CloseIcon,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import {
@@ -96,6 +98,7 @@ const Admin = () => {
   const [tab, setTab] = useState<"projects" | "skills" | "homepage" | "about">(
     "projects",
   );
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const [view, setView] = useState<"list" | "form">("list");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -500,14 +503,27 @@ const Admin = () => {
               <p className="admin-brand-title">Portfolio Studio</p>
               <p className="admin-brand-caption">Content management</p>
             </div>
+            <button
+              type="button"
+              className="admin-menu-toggle"
+              aria-label={mobileNavOpen ? "Close admin menu" : "Open admin menu"}
+              aria-expanded={mobileNavOpen}
+              aria-controls="admin-section-navigation"
+              onClick={() => setMobileNavOpen((open) => !open)}
+            >
+              {mobileNavOpen ? <CloseIcon size={19} /> : <Menu size={19} />}
+            </button>
           </div>
           <p className="admin-nav-label">Workspace</p>
-          <nav className="admin-nav" aria-label="Admin sections">
+          <nav id="admin-section-navigation" className={`admin-nav${mobileNavOpen ? " is-open" : ""}`} aria-label="Admin sections">
             {navItems.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 type="button"
-                onClick={() => setTab(key)}
+                onClick={() => {
+                  setTab(key);
+                  setMobileNavOpen(false);
+                }}
                 className="admin-nav-button"
                 aria-current={tab === key ? "page" : undefined}
               >
