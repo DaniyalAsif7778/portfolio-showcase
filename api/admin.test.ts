@@ -47,4 +47,15 @@ describe("same-origin admin session proxy", () => {
     expect(res.statusCode).toBe(401);
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it("allows the public readiness check without an admin cookie", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ ready: true }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const res = makeResponse();
+    await handler({ method: "POST", headers: { host: "portfolio.test", "x-supabase-url": "https://example.supabase.co", "x-supabase-publishable-key": "public-key" }, body: { action: "login_status" } }, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({ ready: true });
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
 });

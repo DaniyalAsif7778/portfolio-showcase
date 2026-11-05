@@ -61,7 +61,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   } catch {
     return res.status(401).json({ error: "Unauthorized" });
   }
-  if (action !== "login" && !token) return res.status(401).json({ error: "Unauthorized" });
+  if (action !== "login" && action !== "login_status" && !token) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
 
   const upstream = await fetch(`${endpoint.origin}/functions/v1/admin-projects`, {
     method: "POST",
