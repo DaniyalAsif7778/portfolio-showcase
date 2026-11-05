@@ -132,6 +132,25 @@ const isSafeColor = (c: string) => /^(hsl\(\s*\d{1,3}(\.\d+)?\s+\d{1,3}%\s+\d{1,
 const isProjectImagePath = (path: string) => /^\d+-[0-9a-f-]{36}\.(png|jpg|webp|gif|avif)$/i.test(path);
 const isImageContentType = (contentType: string) => /^image\/(png|jpe?g|webp|gif|avif)$/.test(contentType);
 
+async function cleanupExpiredStagedImages() {
+  const bucket = supabase.storage.from("project-image-staging");
+  const expiredBefore = Date.now() - 24 * 60 * 60 * 1000;
+  const expired: string[] = [];
+  for (let offset = 0; ; offset += 100) {
+    const { data, error } = await bucket.list("", { limit: 100, offset, sortBy: { column: "name", order: "asc" } });
+    if (error) throw error;
+    for (const item of data ?? []) {
+      const match = /^(\d+)-[0-9a-f-]{36}\.(png|jpg|webp|gif|avif)$/i.exec(item.name);
+      if (match && Number(match[1]) < expiredBefore) expired.push(item.name);
+    }
+    if (!data || data.length < 100) break;
+  }
+  for (let i = 0; i < expired.length; i += 100) {
+    const { error } = await bucket.remove(expired.slice(i, i + 100));
+    if (error) throw error;
+  }
+}
+
 const fail = (msg: string, status = 500, err?: unknown) => {
   if (err) console.error(msg, err);
   return json({ error: msg }, status);
@@ -213,6 +232,12 @@ Deno.serve(async (req) => {
         }
         if (!isImageContentType(contentType)) {
           return fail("Only PNG, JPG, WEBP, GIF or AVIF images are allowed", 400);
+        }
+
+        try {
+          await cleanupExpiredStagedImages();
+        } catch (cleanupError) {
+          console.error("Could not clean up expired staged project images", cleanupError);
         }
 
         const extension = contentType.split("/")[1].replace("jpeg", "jpg");

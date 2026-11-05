@@ -23,7 +23,7 @@ import {
   adminLogin,
   adminUpload,
   clearAdminToken,
-  getAdminToken,
+  hasAdminSession,
   getAdminLoginStatus,
   getProjectImagePath,
 } from "@/lib/adminApi";
@@ -96,15 +96,7 @@ const Admin = () => {
   useEffect(() => {
     let active = true;
     const check = async () => {
-      const token = getAdminToken();
-      if (token) {
-        try {
-          await adminCall({ action: "verify" });
-          if (active) setAuthenticated(true);
-        } catch {
-          clearAdminToken();
-        }
-      }
+      if (await hasAdminSession() && active) setAuthenticated(true);
       if (active) setCheckingSession(false);
     };
     void check();
@@ -160,7 +152,7 @@ const Admin = () => {
     try {
       return await adminCall(body);
     } catch (err) {
-      if (!getAdminToken()) setAuthenticated(false);
+      if (err instanceof Error && err.message === "Session expired. Please log in again.") setAuthenticated(false);
       throw err;
     }
   };

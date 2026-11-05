@@ -2,8 +2,8 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Admin from './Admin';
 
-const { getAdminLoginStatus, getAdminToken, adminCall, adminLogin, toast } = vi.hoisted(() => ({ getAdminLoginStatus: vi.fn(), getAdminToken: vi.fn(), adminCall: vi.fn(), adminLogin: vi.fn(), toast: vi.fn() }));
-vi.mock('@/lib/adminApi', () => ({ getAdminLoginStatus, getAdminToken, adminCall, adminLogin, adminUpload: vi.fn(), clearAdminToken: vi.fn(), getProjectImagePath: vi.fn(() => null) }));
+const { getAdminLoginStatus, hasAdminSession, adminCall, adminLogin, toast } = vi.hoisted(() => ({ getAdminLoginStatus: vi.fn(), hasAdminSession: vi.fn(), adminCall: vi.fn(), adminLogin: vi.fn(), toast: vi.fn() }));
+vi.mock('@/lib/adminApi', () => ({ getAdminLoginStatus, hasAdminSession, adminCall, adminLogin, adminUpload: vi.fn(), clearAdminToken: vi.fn(), getProjectImagePath: vi.fn(() => null) }));
 vi.mock('@/hooks/use-toast', () => ({ useToast: () => ({ toast }) }));
 vi.mock('@/components/admin/AdminHome', () => ({ default: () => null }));
 vi.mock('@/components/admin/AdminAbout', () => ({ default: () => null }));
@@ -17,7 +17,7 @@ vi.mock('framer-motion', () => ({ motion: new Proxy({}, { get: (_target, tag) =>
 describe('Admin page', () => {
   beforeEach(() => {
     getAdminLoginStatus.mockReset().mockResolvedValue(true);
-    getAdminToken.mockReset().mockReturnValue(null);
+    hasAdminSession.mockReset().mockResolvedValue(false);
     adminCall.mockReset().mockResolvedValue({});
     adminLogin.mockReset();
   });
@@ -39,7 +39,7 @@ describe('Admin page', () => {
   });
 
   it('opens the project editor after authentication', async () => {
-    adminLogin.mockImplementation(async () => { getAdminToken.mockReturnValue('session-token'); });
+    adminLogin.mockImplementation(async () => { hasAdminSession.mockResolvedValue(true); });
     render(<Admin />);
     await screen.findByText('Sign in to manage the content shown on your public portfolio.');
     fireEvent.change(screen.getByPlaceholderText('Username'), { target: { value: 'admin' } });

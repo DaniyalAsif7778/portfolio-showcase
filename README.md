@@ -20,6 +20,8 @@ npm run dev
 
 Vite serves the development app at `http://localhost:8080`.
 
+The local Vite server also mounts the same-origin admin API used in production. Admin sessions are stored in a short-lived, HttpOnly, Secure, SameSite cookie and are not readable by page JavaScript.
+
 ## Other commands
 
 ```sh
@@ -42,6 +44,8 @@ The `admin-projects` Edge Function uses database-backed rate limits shared acros
 Apply pending migrations to the same Supabase project configured by `VITE_SUPABASE_URL` with `npx supabase db push --linked`, then deploy the `admin-projects` function with `npx supabase functions deploy admin-projects`. Keep `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, and `ADMIN_SESSION_SECRET` in Supabase Edge Function secrets. Supabase provides the function API credentials; never add a secret or service-role key to Vercel's browser environment.
 
 Project screenshots preserve their original dimensions and support PNG, JPG, WEBP, GIF, and AVIF files up to 20 MB each. Large images upload to a private staging bucket in resumable chunks. The authenticated Edge Function checks the file signature before copying validated bytes into the public `project-images` bucket. Both buckets require the Supabase project's global Storage file-size limit to allow at least 20 MB.
+
+Abandoned uploads older than 24 hours are removed from the private staging bucket the next time an admin starts an image upload. Normal successful and cancelled uploads are removed immediately.
 
 To reset the admin username and password on Windows, run `.\scripts\reset-admin-password.ps1` in PowerShell from the repository root. The script updates the password hash and session secret in the linked Supabase project. Updating the session secret also clears existing login rate-limit buckets and invalidates previous sessions.
 
