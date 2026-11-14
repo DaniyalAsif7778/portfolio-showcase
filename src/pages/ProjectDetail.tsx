@@ -152,8 +152,8 @@ const ProjectDetail = () => {
       />
       <Navbar />
 
-      <main className="pt-8 pb-20">
-        <div className="container mx-auto px-6 max-w-6xl flex flex-col gap-12">
+      <main className="pt-8 pb-8">
+        <div className="container  px-6 max-w-6xl flex flex-col gap-12">
           <motion.nav
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -181,18 +181,7 @@ const ProjectDetail = () => {
                 <h1 className="text-5xl md:text-6xl font-display font-bold tracking-tighter leading-none">
                   <span className="gradient-text">{project.title}</span>
                 </h1>
-                {project.tech_stack?.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    {project.tech_stack.map((tech) => (
-                      <span
-                        key={tech}
-                        className="px-3 py-1 text-[10px] uppercase tracking-widest font-bold border border-border bg-card/50 text-primary rounded-sm"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                )}
+               
               </div>
 
               <p className="text-lg text-muted-foreground leading-relaxed max-w-md">
@@ -247,7 +236,7 @@ const ProjectDetail = () => {
                       <img
                         src={project.images[selectedImage] || '/placeholder.svg'}
                         alt={`${project.title} screenshot ${selectedImage + 1}`}
-                        className="block h-[min(68svh,760px)] w-full object-contain"
+                        className="block  w-full object-contain"
                         decoding="async"
                         fetchPriority="high"
                       />
@@ -311,8 +300,8 @@ const ProjectDetail = () => {
               <div className="space-y-6">
                 {project.tech_stack?.length > 0 && (
                   <div className="space-y-1">
-                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">Stack</p>
-                    <p className="text-foreground font-medium">{project.tech_stack.join(' · ')}</p>
+ <h2 className=" text-base font-display font-bold tracking-tight ">Tech Stack</h2>       
+              <p className="text-primary font-medium text-sm"><span className="text-foreground">{project.tech_stack.join(' · ')}</span></p>
                   </div>
                 )}
                 <div className="space-y-1">
@@ -332,6 +321,23 @@ const ProjectDetail = () => {
               </p>
             </div>
           </motion.section>
+        </div> 
+        <div className="container mx-auto px-6 max-w-6xl flex flex-col gap-12">
+         
+          <div className="flex flex-wrap gap-2">
+          {project.tech_stack?.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {project.tech_stack.map((tech) => (
+                      <span
+                        key={tech}
+                        className="px-4 py-1 text-[12px] uppercase tracking-widest font-bold border border-border bg-card/50 text-primary rounded-sm"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                )}
+          </div>
         </div>
       </main>
 

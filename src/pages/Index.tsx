@@ -247,7 +247,7 @@ const Index = () => {
                     <span className="eyebrow project-slide-type">Featured project</span>
                     <h2>{project.title}</h2>
                     <p>{project.description}</p>
-                    <div className="project-slide-stack">{(project.tech_stack || []).map((tech) => <span key={tech}>{tech}</span>)}</div>
+                    <div className="project-slide-stack">{(project.tech_stack || []).slice(0, 5).map((tech) => <span key={tech}>{tech}</span>)}</div>
                     <Link to={`/projects/${project.slug}`} tabIndex={projectDeckPinned && activeProject !== index ? -1 : 0} className="project-slide-link">Explore the project <ArrowUpRight size={18} /></Link>
                   </div>
                 </article>)}
