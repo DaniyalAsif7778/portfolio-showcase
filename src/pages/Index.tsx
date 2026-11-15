@@ -274,7 +274,7 @@ const Index = () => {
 
         <section id="contact" className="contact-section scroll-mt-20" aria-labelledby="contact-title">
           <div className="container py-24"><div className="contact-panel home-reveal">
-            <div><p className="eyebrow mb-4">04 / Start a conversation</p><h2 id="contact-title" className="contact-title">Have a good idea?<br />Let’s make it real.</h2><p className="mt-5 max-w-xl leading-7 text-muted-foreground">I’m open to thoughtful collaborations, frontend opportunities, and projects that make the web easier to use.</p></div>
+            <div><p className="eyebrow mb-4">04 / Start a conversation</p><h2 id="contact-title" className="contact-title">Have a good idea?<br />Let’s make it real.</h2><p className="mt-5 max-w-xl leading-7 text-muted-foreground">I’m open to thoughtful collaborations, mern stack opportunities, and projects that make the web easier to use.</p></div>
             <div className="contact-actions"><Link className="contact-email" to="/contact">Send a message <ArrowUpRight size={16} /></Link>{about.email && <a className="contact-social" href={`mailto:${about.email}`}><Mail size={17} />{about.email}</a>}{settings.linkedin_url && <a className="contact-social" href={settings.linkedin_url} target="_blank" rel="noreferrer"><Linkedin size={17} />Connect on LinkedIn</a>}<Link className="contact-social" to="/github"><Github size={17} />View GitHub profile</Link></div>
           </div></div>
         </section>
