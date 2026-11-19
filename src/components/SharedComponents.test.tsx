@@ -21,7 +21,7 @@ describe('shared portfolio components', () => {
     fireEvent.click(menu);
     expect(screen.getByRole('button', { name: 'Close navigation menu' })).toHaveAttribute('aria-expanded', 'true');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Switch to dark theme' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Switch to dark theme' })[0]);
     expect(setTheme).toHaveBeenCalledWith('dark');
   });
 

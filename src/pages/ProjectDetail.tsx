@@ -249,24 +249,7 @@ const ProjectDetail = () => {
                   </div>
                 </div>
 
-                {project.images.length > 1 && (
-                  <div className="grid grid-cols-3 gap-4">
-                    {project.images.map((img, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setSelectedImage(i)}
-                        aria-label={`Show image ${i + 1}`}
-                        className={`grid place-items-center bg-black/5 dark:bg-white/5 border border-border rounded-xl overflow-hidden aspect-video transition-all ${
-                          selectedImage === i
-                            ? 'outline outline-2 outline-primary/50 outline-offset-4'
-                            : 'opacity-60 hover:opacity-100'
-                        }`}
-                      >
-                        <img src={img} alt={`Show ${project.title} screenshot ${i + 1}`} className="w-full h-full object-contain" loading="lazy" />
-                      </button>
-                    ))}
-                  </div>
-                )}
+                
               </motion.div>
             )}
           </div>
