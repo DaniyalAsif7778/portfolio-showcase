@@ -589,7 +589,7 @@ const Index = () => {
               <div className="about-profile flex flex-row items-center justify-between gap-6">
                 <h2 id="about-title" className="section-heading flex flex-col">
                   <h1>About</h1>
-                  <h1 className="ml-24 text-[#0C6869]">
+                  <h1 className="ml-[clamp(1rem,12vw,9rem)] text-[#0C6869]">
                     {settings.name.split(" ")[0]}.
                   </h1>
                 </h2>
