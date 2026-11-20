@@ -1,15 +1,20 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, ExternalLink, Github } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { Skeleton } from '@/components/ui/skeleton';
-import ProjectVideoScrub from '@/components/ProjectVideoScrub';
-import { withCurrentProjectContent } from '@/lib/featuredProjectContent';
-import SEO from '@/components/SEO';
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { ArrowLeft, ArrowRight, ExternalLink, Github } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { Skeleton } from "@/components/ui/skeleton";
+import ProjectVideoScrub from "@/components/ProjectVideoScrub";
+import { withCurrentProjectContent } from "@/lib/featuredProjectContent";
+import SEO from "@/components/SEO";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Project {
   id: string;
@@ -37,18 +42,24 @@ const ProjectDetail = () => {
 
   const changeImage = (direction: -1 | 1) => {
     if (!project?.images?.length) return;
-    setSelectedImage((current) => (current + direction + project.images.length) % project.images.length);
+    setSelectedImage(
+      (current) =>
+        (current + direction + project.images.length) % project.images.length,
+    );
   };
 
   useEffect(() => {
     if (!galleryOpen || imageCount < 2) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      const direction = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0;
+      const direction =
+        event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : 0;
       if (!direction) return;
-      setSelectedImage((current) => (current + direction + imageCount) % imageCount);
+      setSelectedImage(
+        (current) => (current + direction + imageCount) % imageCount,
+      );
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, [galleryOpen, imageCount]);
 
   useEffect(() => {
@@ -63,29 +74,42 @@ const ProjectDetail = () => {
       setLoadError(null);
       try {
         const { data, error } = await supabase
-          .from('projects')
-          .select('*')
-          .eq('slug', slug)
+          .from("projects")
+          .select("*")
+          .eq("slug", slug)
           .single();
         if (!active) return;
-        if (error && error.code !== 'PGRST116') throw error;
+        if (error && error.code !== "PGRST116") throw error;
         setProject(data ? withCurrentProjectContent(data as Project) : null);
         setSelectedImage(0);
       } catch (error) {
         if (!active) return;
-        console.error('Unable to load project details:', error);
+        console.error("Unable to load project details:", error);
         setProject(null);
-        setLoadError('Could not load this project. Check your connection and try again.');
+        setLoadError(
+          "Could not load this project. Check your connection and try again.",
+        );
       } finally {
         if (active) setLoading(false);
       }
     };
-    const projectUpdates = slug ? supabase
-      .channel(`project-detail-${slug}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects', filter: `slug=eq.${slug}` }, () => {
-        void fetchProject();
-      })
-      .subscribe() : null;
+    const projectUpdates = slug
+      ? supabase
+          .channel(`project-detail-${slug}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "projects",
+              filter: `slug=eq.${slug}`,
+            },
+            () => {
+              void fetchProject();
+            },
+          )
+          .subscribe()
+      : null;
     void fetchProject();
     return () => {
       active = false;
@@ -109,14 +133,29 @@ const ProjectDetail = () => {
   if (!project) {
     return (
       <div className="min-h-screen bg-background">
-        <SEO title="Project not found" description="This portfolio project could not be found." path={`/projects/${slug || ''}`} noIndex />
+        <SEO
+          title="Project not found"
+          description="This portfolio project could not be found."
+          path={`/projects/${slug || ""}`}
+          noIndex
+        />
         <Navbar />
         <main className="pt-8 pb-16 container mx-auto px-6 text-center">
-          <h1 className="text-2xl font-display font-bold mb-4">{loadError ? 'Project unavailable' : 'Project not found'}</h1>
+          <h1 className="text-2xl font-display font-bold mb-4">
+            {loadError ? "Project unavailable" : "Project not found"}
+          </h1>
           {loadError ? (
             <div className="flex flex-col items-center gap-4">
-              <p role="alert" className="text-muted-foreground">{loadError}</p>
-              <button type="button" onClick={() => setRetryCount((count) => count + 1)} className="text-primary hover:underline">Retry</button>
+              <p role="alert" className="text-muted-foreground">
+                {loadError}
+              </p>
+              <button
+                type="button"
+                onClick={() => setRetryCount((count) => count + 1)}
+                className="text-primary hover:underline"
+              >
+                Retry
+              </button>
             </div>
           ) : (
             <Link to="/projects" className="text-primary hover:underline">
@@ -135,19 +174,19 @@ const ProjectDetail = () => {
         title={`${project.title} | Daniyal Asif`}
         description={project.description}
         path={`/projects/${project.slug}`}
-        image={project.images?.[0] || '/daniyal-profile.png'}
+        image={project.images?.[0] || "/daniyal-profile.png"}
         structuredData={{
-          '@type': 'CreativeWork',
+          "@type": "CreativeWork",
           name: project.title,
           description: project.description,
-          url: `${import.meta.env.VITE_SITE_URL || 'https://daniyal-porfolio-three.vercel.app'}/projects/${project.slug}`,
+          url: `${import.meta.env.VITE_SITE_URL || "https://daniyal-porfolio-three.vercel.app"}/projects/${project.slug}`,
           image: project.images?.[0],
           author: {
-            '@type': 'Person',
-            '@id': `${import.meta.env.VITE_SITE_URL || 'https://daniyal-porfolio-three.vercel.app'}/#person`,
-            name: 'Daniyal Asif',
+            "@type": "Person",
+            "@id": `${import.meta.env.VITE_SITE_URL || "https://daniyal-porfolio-three.vercel.app"}/#person`,
+            name: "Daniyal Asif",
           },
-          keywords: project.tech_stack?.join(', '),
+          keywords: project.tech_stack?.join(", "),
         }}
       />
       <Navbar />
@@ -162,7 +201,10 @@ const ProjectDetail = () => {
               to="/projects"
               className="group inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-accent transition-colors"
             >
-              <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
+              <ArrowLeft
+                size={18}
+                className="transition-transform group-hover:-translate-x-1"
+              />
               Back to projects
             </Link>
           </motion.nav>
@@ -174,14 +216,15 @@ const ProjectDetail = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className={`flex flex-col gap-8 ${
-                project.images && project.images.length > 0 ? 'lg:col-span-5' : 'lg:col-span-8'
+                project.images && project.images.length > 0
+                  ? "lg:col-span-5"
+                  : "lg:col-span-8"
               }`}
             >
               <div className="space-y-4">
                 <h1 className="text-5xl md:text-6xl font-display font-bold tracking-tighter leading-none">
                   <span className="gradient-text">{project.title}</span>
                 </h1>
-               
               </div>
 
               <p className="text-lg text-muted-foreground leading-relaxed max-w-md">
@@ -224,7 +267,7 @@ const ProjectDetail = () => {
                 <div className="relative">
                   <div
                     className="absolute -inset-0.5 opacity-20 blur-2xl"
-                    style={{ background: 'var(--gradient-primary)' }}
+                    style={{ background: "var(--gradient-primary)" }}
                   />
                   <div className="relative overflow-hidden rounded-2xl border border-border bg-black/5 dark:bg-white/5">
                     <button
@@ -234,42 +277,92 @@ const ProjectDetail = () => {
                       className="block w-full cursor-zoom-in focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
                     >
                       <img
-                        src={project.images[selectedImage] || '/placeholder.svg'}
+                        src={
+                          project.images[selectedImage] || "/placeholder.svg"
+                        }
                         alt={`${project.title} screenshot ${selectedImage + 1}`}
                         className="block  w-full object-contain"
                         decoding="async"
                         fetchPriority="high"
                       />
                     </button>
-                    {project.images.length > 1 && <>
-                      <button type="button" onClick={() => changeImage(-1)} aria-label="Previous project image" className="absolute left-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-black/70 text-white shadow-lg transition hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"><ArrowLeft size={21} /></button>
-                      <button type="button" onClick={() => changeImage(1)} aria-label="Next project image" className="absolute right-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-black/70 text-white shadow-lg transition hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"><ArrowRight size={21} /></button>
-                      <span aria-live="polite" className="absolute bottom-3 right-3 rounded-full bg-black/75 px-3 py-1 text-xs font-medium text-white">{selectedImage + 1} / {project.images.length}</span>
-                    </>}
+                    {project.images.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => changeImage(-1)}
+                          aria-label="Previous project image"
+                          className="absolute left-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-black/70 text-white shadow-lg transition hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                        >
+                          <ArrowLeft size={21} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => changeImage(1)}
+                          aria-label="Next project image"
+                          className="absolute right-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-black/70 text-white shadow-lg transition hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                        >
+                          <ArrowRight size={21} />
+                        </button>
+                        <span
+                          aria-live="polite"
+                          className="absolute bottom-3 right-3 rounded-full bg-black/75 px-3 py-1 text-xs font-medium text-white"
+                        >
+                          {selectedImage + 1} / {project.images.length}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
-
-                
               </motion.div>
             )}
           </div>
 
           <Dialog open={galleryOpen} onOpenChange={setGalleryOpen}>
             <DialogContent className="h-[94svh] w-[96vw] max-w-[1600px] overflow-hidden border-white/15 bg-black p-3 text-white sm:rounded-xl sm:p-5">
-              <DialogTitle className="sr-only">{project.title} image {selectedImage + 1} of {project.images.length}</DialogTitle>
-              <DialogDescription className="sr-only">Use the previous and next buttons or arrow keys to browse project screenshots.</DialogDescription>
+              <DialogTitle className="sr-only">
+                {project.title} image {selectedImage + 1} of{" "}
+                {project.images.length}
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                Use the previous and next buttons or arrow keys to browse
+                project screenshots.
+              </DialogDescription>
               <div className="relative flex h-full min-h-0 items-center justify-center pt-8">
-                <img src={project.images[selectedImage]} alt={`${project.title} screenshot ${selectedImage + 1}`} className="max-h-full max-w-full object-contain" />
-                {project.images.length > 1 && <>
-                  <button type="button" onClick={() => changeImage(-1)} aria-label="Previous project image" className="absolute left-2 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 sm:left-5"><ArrowLeft size={24} /></button>
-                  <button type="button" onClick={() => changeImage(1)} aria-label="Next project image" className="absolute right-2 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 sm:right-5"><ArrowRight size={24} /></button>
-                  <span aria-live="polite" className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-sm text-white">{selectedImage + 1} / {project.images.length}</span>
-                </>}
+                <img
+                  src={project.images[selectedImage]}
+                  alt={`${project.title} screenshot ${selectedImage + 1}`}
+                  className="max-h-full max-w-full object-contain"
+                />
+                {project.images.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => changeImage(-1)}
+                      aria-label="Previous project image"
+                      className="absolute left-2 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 sm:left-5"
+                    >
+                      <ArrowLeft size={24} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => changeImage(1)}
+                      aria-label="Next project image"
+                      className="absolute right-2 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 sm:right-5"
+                    >
+                      <ArrowRight size={24} />
+                    </button>
+                    <span
+                      aria-live="polite"
+                      className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-4 py-2 text-sm text-white"
+                    >
+                      {selectedImage + 1} / {project.images.length}
+                    </span>
+                  </>
+                )}
               </div>
             </DialogContent>
           </Dialog>
-
-          {project.video_url && <ProjectVideoScrub src={project.video_url} poster={project.images?.[0]} title={project.title} />}
 
           {/* Details */}
           <motion.section
@@ -279,21 +372,34 @@ const ProjectDetail = () => {
             className="grid grid-cols-1 md:grid-cols-12 gap-12 pt-12 border-t border-border"
           >
             <div className="md:col-span-4">
-              <h2 className="text-2xl font-display font-bold tracking-tight mb-6">About this Project</h2>
+              <h2 className="text-2xl font-display font-bold tracking-tight mb-6">
+                About this Project
+              </h2>
               <div className="space-y-6">
                 {project.tech_stack?.length > 0 && (
                   <div className="space-y-1">
- <h2 className=" text-base font-display font-bold tracking-tight ">Tech Stack</h2>       
-              <p className="text-primary font-medium text-sm"><span className="text-foreground">{project.tech_stack.join(' · ')}</span></p>
+                    <h2 className=" text-base font-display font-bold tracking-tight ">
+                      Tech Stack
+                    </h2>
+                    <p className="text-primary font-medium text-sm">
+                      <span className="text-foreground">
+                        {project.tech_stack.join(" · ")}
+                      </span>
+                    </p>
                   </div>
                 )}
                 <div className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">Published</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground">
+                    Published
+                  </p>
                   <p className="text-foreground font-medium">
-                    {new Date(project.created_at).toLocaleDateString(undefined, {
-                      month: 'long',
-                      year: 'numeric',
-                    })}
+                    {new Date(project.created_at).toLocaleDateString(
+                      undefined,
+                      {
+                        month: "long",
+                        year: "numeric",
+                      },
+                    )}
                   </p>
                 </div>
               </div>
@@ -304,30 +410,31 @@ const ProjectDetail = () => {
               </p>
             </div>
           </motion.section>
-        </div> 
-        <div className="container mx-auto px-6 max-w-6xl flex flex-col gap-12">
-         
+                    {project.video_url && <ProjectVideoScrub src={project.video_url} poster={project.images?.[0]} title={project.title} />}
+ <div className="container mx-auto px-6 max-w-6xl flex flex-col gap-12">
           <div className="flex flex-wrap gap-2">
-          {project.tech_stack?.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    {project.tech_stack.map((tech) => (
-                      <span
-                        key={tech}
-                        className="px-4 py-1 text-[12px] uppercase tracking-widest font-bold border border-border bg-card/50 text-primary rounded-sm"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                )}
+            {project.tech_stack?.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-2">
+                {project.tech_stack.map((tech) => (
+                  <span
+                    key={tech}
+                    className="px-4 py-1 text-[12px] uppercase tracking-widest font-bold border border-border bg-card/50 text-primary rounded-sm"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
+        </div>
+
+       
       </main>
 
       <Footer />
     </div>
   );
 };
-
 
 export default ProjectDetail;
